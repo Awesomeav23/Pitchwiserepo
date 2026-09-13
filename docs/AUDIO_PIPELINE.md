@@ -95,6 +95,16 @@ for low-range instrument profiles only, accepting ~85 ms of added window latency
 (b) declare bass supported only above its low E. Decide after measurement; record the
 outcome here.
 
+**Measured (spike, 2026-09-13).** The floor is `sampleRate / (windowSize/2 - 1)` — the
+integration window is half the analysis window, so the largest evaluable lag is
+`windowSize/2 - 1`. That is **46.9 Hz** at 2048 / 48 kHz, confirming the estimate above.
+Cello low C (65.4 Hz) and guitar low E (82.4 Hz) are comfortably clear. **Bass low E
+(41.2 Hz) and piano A0 (27.5 Hz) produce no detection at all** — the detector reports
+unvoiced rather than a wrong pitch, which is the safe failure. A 4096-sample window
+resolves both, at 85.3 ms of window and double the CPU. Detail in `spike/RESULTS.md` §3.
+This resolves open question 3 in `MANIFEST.md`; option (b) remains available and costs
+one semitone.
+
 **Audio-thread discipline.** No allocation, no `console.log`, no try/catch in the hot
 path inside `process()`. Anything that triggers garbage collection on the audio thread
 causes dropouts.
@@ -127,6 +137,15 @@ See ADR-003. Emits two values: estimated fundamental `f0` in Hz, and a clarity v
 Implementation: use a maintained library (Pitchy) rather than hand-rolling, unless the
 spike shows a need to control the internals. Reassess only if library overhead measurably
 threatens the CPU criterion.
+
+**Note on what is actually running where.** The client (`client/src/audio/`) uses Pitchy,
+as specified. The throwaway spike hand-rolls YIN instead, because an
+`AudioWorkletGlobalScope` cannot import a library and the spike has no build step — a
+workaround, not a recommendation. Pitchy implements the **McLeod Pitch Method**, which is
+a relative of YIN rather than YIN itself. The two share the octave-error failure mode but
+not necessarily its distribution, so **the detector measurements in `spike/RESULTS.md`
+describe the spike's YIN and do not automatically transfer to the client.** Re-measure
+against Pitchy before quoting an accuracy or octave-error figure for the product.
 
 ### Stage D — Clarity gate
 
@@ -271,6 +290,23 @@ the same recorded input. The delta is the evidence that this strategy works — 
 the single most useful number this project will produce for a write-up or an interview.
 Both fields live in §7.
 
+**A measured gap in the defence (spike, 2026-09-13).** All three layers assume octave
+errors are *sporadic* — that most frames are right and the wrong ones are outliers. Above
+roughly 2.5 kHz that assumption fails. The true period is only 13–19 samples there, and
+when it falls near a half-integer no integer lag correlates well while 2× the lag lands
+near a whole number and scores far better, so the detector locks the sub-octave on
+**every frame of a sustained note**, at a clarity around 0.98. Layer 1 does not catch it
+because the sub-octave is still inside the instrument's range. Layer 3 does not catch it
+because every frame agrees, so the median agrees with them. Measured at 32% of test
+frequencies in 3000–3600 Hz, 0% below 2.5 kHz.
+
+This affects **violin** (fMax 3600) and **piano** (fMax 4200) only; flute and clarinet cap
+at 2200 Hz. A submultiple guard — re-checking `tau/2` and `tau/3` against a relaxed
+threshold — removes it entirely and leaves C2–C6 unchanged to within 0.004 cents, at the
+cost of pushing 26.5% of high-range frames below the clarity gate, i.e. silence instead of
+a confident wrong octave. It is implemented in the spike and **off by default**. Tracked
+as open question 4 in `MANIFEST.md`; decide with a real violin before enabling it.
+
 ---
 
 ## 6. Instrument Profiles
@@ -354,7 +390,8 @@ the UI holds 60 fps and note the audio-thread utilization.
 | Monophonic only | Multi-pitch detection is out of scope (`REQUIREMENTS.md` §2.2) | By design |
 | Attack transients yield garbage frames on plucked/struck instruments | Signal is not yet periodic during the attack | Mitigated by onset suppression, Stage H |
 | Deliberate octave leaps are damped | Median filter cannot distinguish them from errors | Accepted; v1 exercises are stepwise |
-| Very low notes (below ~45 Hz) unreliable | Analysis window too short to contain two periods | Open — see Stage A note |
+| Very low notes below 46.9 Hz undetectable | Analysis window too short to contain two periods | **Measured.** Fails safe as unvoiced. See Stage A note |
+| Sub-octave errors above ~2.5 kHz | At lags of 13–19 samples, a true period near a half-integer correlates worse than 2× that lag | **Open.** Affects violin and piano. See §5 and `spike/RESULTS.md` §6 |
 | Loud room noise passing the gate | Gate is amplitude-only, not spectral | Accepted; clarity gate at Stage D catches most of it |
 | Safari behavior unverified | AudioWorklet support historically inconsistent | Best-effort; not a success criterion |
 

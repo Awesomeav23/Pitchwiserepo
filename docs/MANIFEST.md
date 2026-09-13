@@ -1,8 +1,8 @@
 # MANIFEST.md
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
-**Phase:** 1 of 3 (Foundation documents)
-**Last checkpoint:** 2026-09-13 (spike built)
+**Phase:** 3 of 3 — documents complete, build underway
+**Last checkpoint:** 2026-09-13 (spike built; client scaffolded)
 
 ---
 
@@ -25,10 +25,13 @@
 
 | Item | Status |
 |---|---|
-| Spike: mic → note name, throwaway page | **Built; partly run.** ADR-002 confirmed in Chrome. Checklist and findings in `spike/README.md` |
+| Spike: mic → note name, throwaway page | **Build complete.** ADR-002 confirmed in Chrome; 25 DSP checks passing. Checklist and findings in `spike/README.md` |
 | Spike: hardware measurements | **Outstanding** — latency, gate thresholds, metronome bleed, real instruments. See below |
 | 5 exercises hand-authored as JSON | Not started — shapes defined in DATA_MODEL §4, §6.2 |
-| Repo init, .gitignore, README skeleton | Complete — `git init` 2026-09-13, remote `Awesomeav23/Pitchwiserepo`, not yet pushed |
+| Repo init, .gitignore, README skeleton | Complete — remote `Awesomeav23/Pitchwiserepo`, pushed |
+| Client scaffold + audio engine | **Complete.** Vite + React + TypeScript; Stages A–G in an AudioWorklet using Pitchy; tuner mode (US-08) |
+| Client: remaining 8 screens | Not started — list in `README.md` |
+| Server | Not started — contract in `API_SPEC.md` |
 
 ### Spike status against `AUDIO_PIPELINE.md` §9
 
@@ -111,9 +114,12 @@ superseding ADR — not an edit to the table above.
 
 ## Next Action
 
-**Finish the spike's hardware measurements.** With `API_SPEC.md` written, the
-document set is complete and Phase 2 is closed — the only outstanding documentation
-work is filling measured values into `AUDIO_PIPELINE.md`, which needs hardware.
+**Finish the spike's hardware measurements.** The document set is complete, the spike
+is built, and the client runs the engine end to end. The only outstanding documentation
+work is filling measured values into `AUDIO_PIPELINE.md`, which needs a microphone.
+
+In parallel, the practice-take screen is the next client work that does not depend on
+the server.
 
  The spike is built and ADR-002 —
 the largest scheduled risk in REQUIREMENTS §8 — is confirmed working in Chrome.
@@ -136,3 +142,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-13 | Open question 3 resolved (low-frequency floor = 46.9 Hz); OQ4 opened (sub-octave errors above 2.5 kHz) |
 | 2026-09-13 | Repo initialised, first commit, remote added (not pushed) |
 | 2026-09-13 | API_SPEC.md written — Phase 2 documents complete |
+| 2026-09-13 | Client scaffolded; Stages A–G ported to TypeScript; tuner mode (US-08) working |
+| 2026-09-13 | Worklet build resolved: esbuild emits a self-contained file, identical in dev and production |

@@ -57,11 +57,17 @@ is a spike-only shortcut, not a recommendation.
 - **Measurements** — pipeline latency, acoustic loopback, accuracy sweep, octave A/B on a
   recorded take, metronome bleed. Everything lands in a markdown log you can copy out
 
+## Status
+
+**The spike is built and ADR-002 is de-risked.** What remains is measurement, not
+construction: every item below that is outstanding needs a microphone in a real room.
+
 ## Status against §9
 
 | # | Item | Status |
 |---|---|---|
 | 1 | `getUserMedia` → `AudioWorkletNode` | **Worklet confirmed in Chrome** — module loads, `process()` runs, audio captured and played back. `getUserMedia` itself still untested |
+| — | *Engine ported to the real client* | **Done** — `client/src/audio/`, using Pitchy per ADR-003 |
 | 2 | Ring buffer, no allocation | **Verified.** Sample-exact; GC does not grow with runtime. Now also running in a browser |
 | 3 | YIN returns plausible `f0` | **Verified headlessly.** Sub-cent 82 Hz–1.7 kHz. On-screen readout not yet confirmed |
 | 4 | Note name + cents on screen | Built; not yet confirmed visually |
