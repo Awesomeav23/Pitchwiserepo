@@ -65,7 +65,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | `docs/AUDIO_PIPELINE.md` | Signal path, filtering strategy, instrument profiles, latency budget |
 | `docs/MANIFEST.md` | Build status, locked constants, open questions |
 | `docs/DATA_MODEL.md` | Schema, JSONB shapes, seed data, scoring formula |
-| `docs/API_SPEC.md` | *Not yet written* |
+| `docs/API_SPEC.md` | Endpoints, auth, validation, pagination |
 
 ## Next action
 

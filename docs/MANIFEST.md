@@ -8,7 +8,7 @@
 
 ## Progress
 
-**4 / 6 documents complete (67%)**
+**5 / 6 documents complete (83%)**
 
 ## File Status
 
@@ -18,7 +18,7 @@
 | 2 | `docs/TECH_DECISIONS.md` | 1 | Complete | 10 ADRs, all Accepted |
 | 3 | `docs/AUDIO_PIPELINE.md` | 1 | Complete — pending measurement | Spike is built and partly run. `[TBM]` fields needing hardware are still empty; findings so far in `spike/RESULTS.md` |
 | 4 | `docs/DATA_MODEL.md` | 2 | Complete | Resolves open question 1; adds ADR-011 |
-| 5 | `docs/API_SPEC.md` | 2 | Not started | Unblocked — #4 complete |
+| 5 | `docs/API_SPEC.md` | 2 | Complete | 4 open items in §14; none block implementation |
 | 6 | `docs/MANIFEST.md` | 2 | This file | Updated each checkpoint |
 
 ## Phase 3 — Pre-code, not documents
@@ -111,7 +111,11 @@ superseding ADR — not an edit to the table above.
 
 ## Next Action
 
-**Finish the spike's hardware measurements.** The spike is built and ADR-002 —
+**Finish the spike's hardware measurements.** With `API_SPEC.md` written, the
+document set is complete and Phase 2 is closed — the only outstanding documentation
+work is filling measured values into `AUDIO_PIPELINE.md`, which needs hardware.
+
+ The spike is built and ADR-002 —
 the largest scheduled risk in REQUIREMENTS §8 — is confirmed working in Chrome.
 What remains is one focused session at a microphone, listed above. `API_SPEC.md`
 is unblocked and does not depend on any of it, so it can proceed in parallel.
@@ -131,3 +135,4 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-13 | ADR-002 confirmed in Chrome — worklet runs on the audio thread, take plays back |
 | 2026-09-13 | Open question 3 resolved (low-frequency floor = 46.9 Hz); OQ4 opened (sub-octave errors above 2.5 kHz) |
 | 2026-09-13 | Repo initialised, first commit, remote added (not pushed) |
+| 2026-09-13 | API_SPEC.md written — Phase 2 documents complete |
