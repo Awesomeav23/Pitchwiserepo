@@ -1,0 +1,1519 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Pitchwise spike — mic → note name</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --bg:#08080d; --panel:#12121b; --sunk:#0b0b12; --line:#242433;
+  --tx:#e6e6f0; --dim:#8b8b9f;
+  --acc:#7c5cff; --acc2:#a78bfa;
+  --grn:#3ddc84; --amb:#f2c14e; --red:#ff5d6c;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:13.5px/1.55 -apple-system,
+BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+background-image:radial-gradient(900px 480px at 18% -8%,rgba(124,92,255,.16),transparent 60%);
+background-attachment:fixed}
+
+header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:11px 18px;
+background:rgba(18,18,27,.85);backdrop-filter:blur(12px);
+border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+h1{font-size:13.5px;margin:0 10px 0 0;font-weight:650;letter-spacing:.01em}
+h1 small{color:var(--dim);font-weight:400}
+
+button{background:#1d1d2b;color:var(--tx);border:1px solid var(--line);border-radius:9px;
+padding:6px 13px;font:inherit;cursor:pointer;transition:.14s}
+button:hover:not(:disabled){border-color:var(--acc);background:#24243a}
+button:disabled{opacity:.35;cursor:default}
+button.on{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600;
+box-shadow:0 0 18px rgba(124,92,255,.4)}
+select,input[type=number]{background:#1d1d2b;color:var(--tx);border:1px solid var(--line);
+border-radius:9px;padding:5px 8px;font:inherit}
+input[type=range]{vertical-align:middle;width:118px;accent-color:var(--acc)}
+input[type=file]{font:inherit;color:var(--dim);font-size:12px}
+
+/* toggle switch */
+.switch{width:42px;height:23px;padding:0;border-radius:99px;background:#26263a;
+border:1px solid var(--line);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;
+border-radius:50%;background:#70708a;transition:.16s}
+.switch:hover:not(:disabled){background:#2d2d45}
+.switch.on{background:var(--acc);border-color:var(--acc);box-shadow:0 0 16px rgba(124,92,255,.45)}
+.switch.on::after{left:22px;background:#fff}
+
+.wrap{padding:16px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.panel{background:linear-gradient(180deg,#15151f,#101018);border:1px solid var(--line);
+border-radius:18px;padding:17px 18px;box-shadow:0 1px 0 rgba(255,255,255,.03) inset}
+.panel h2{font-size:11px;margin:0 0 13px;color:var(--dim);letter-spacing:.13em;
+text-transform:uppercase;font-weight:600}
+.span2{grid-column:1/-1}
+
+.readout{display:flex;align-items:baseline;gap:26px;flex-wrap:wrap}
+#note{font-size:68px;line-height:1;font-weight:640;letter-spacing:-.02em;min-width:2.6ch;
+font-family:var(--mono);font-variant-numeric:tabular-nums}
+#cents{font-size:32px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--dim)}
+.readout span:not(.muted){font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.bar{position:relative;height:28px;background:var(--sunk);border:1px solid var(--line);
+border-radius:99px;margin:12px 0;overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#3a3a52}
+.bar b{position:absolute;top:3px;bottom:3px;width:5px;border-radius:99px;background:var(--grn);
+left:50%;transition:left .05s linear;box-shadow:0 0 14px currentColor}
+.bar u{position:absolute;top:0;bottom:0;left:40%;width:20%;background:rgba(61,220,132,.10)}
+
+canvas{width:100%;height:300px;display:block;background:var(--sunk);
+border:1px solid var(--line);border-radius:16px}
+
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--dim);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+
+.row{display:flex;gap:9px;align-items:center;margin:9px 0;flex-wrap:wrap}
+.row label{color:var(--dim);min-width:136px}
+.row output{font-family:var(--mono);font-variant-numeric:tabular-nums;min-width:5ch}
+
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:14px;padding:13px;
+overflow:auto;max-height:360px;font:11.5px/1.6 var(--mono);margin:0;white-space:pre-wrap}
+
+.pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:11.5px;
+border:1px solid var(--line);background:#16161f}
+.ok{color:var(--grn);border-color:rgba(61,220,132,.45)}
+.warn{color:var(--amb);border-color:rgba(242,193,78,.45)}
+.bad{color:var(--red);border-color:rgba(255,93,108,.45)}
+.note{color:var(--dim);font-size:12px;margin:10px 0 0;line-height:1.6}
+.g{color:var(--grn)}.a{color:var(--amb)}.r{color:var(--red)}.v{color:var(--acc2)}
+
+nav#tabs{display:flex;gap:3px;padding:0 18px;background:rgba(18,18,27,.85);
+backdrop-filter:blur(12px);flex-wrap:wrap;border-bottom:1px solid var(--line);
+position:sticky;top:46px;z-index:4}
+nav#tabs button{border:none;border-radius:0;background:none;color:var(--dim);padding:11px 14px;
+border-bottom:2px solid transparent;box-shadow:none}
+nav#tabs button:hover{color:var(--tx);background:none}
+nav#tabs button.on{color:var(--tx);border-bottom-color:var(--acc);font-weight:650;
+background:none;box-shadow:none}
+
+.badge{display:inline-block;min-width:18px;padding:1px 6px;border-radius:99px;
+background:var(--acc);color:#fff;font-size:10px;margin-left:6px;font-weight:600}
+kbd{background:#1a1a26;border:1px solid var(--line);border-radius:5px;padding:1px 5px;
+font:10.5px var(--mono);color:var(--dim)}
+
+#recInd{font-family:var(--mono)}
+#recInd::before{content:"\25CF";margin-right:6px;color:var(--red)}
+#recInd.paused::before{color:var(--dim)}
+#recInd.paused{color:var(--dim)}
+
+body.focus nav#tabs,body.focus .wrap:not(#stage){display:none}
+body.focus #note{font-size:140px}
+body.focus #cents{font-size:54px}
+body.focus canvas{height:58vh}
+body.focus #stage .note{display:none}
+
+/* ---------- hero ---------- */
+.hero{grid-column:1/-1;border:1px solid var(--line);border-radius:26px;padding:26px 28px;
+background:linear-gradient(155deg,rgba(124,92,255,.20),rgba(18,18,27,0) 48%),
+linear-gradient(180deg,#16161f,#0f0f17)}
+.greet{color:var(--dim);margin:0 0 8px;font-size:13px}
+.hero-title{font-size:40px;line-height:1.06;margin:0 0 24px;font-weight:700;letter-spacing:-.025em}
+.grad{background:linear-gradient(92deg,#a78bfa,#7c5cff);-webkit-background-clip:text;
+background-clip:text;color:transparent}
+.herogrid{display:grid;gap:14px;grid-template-columns:minmax(210px,.85fr) minmax(260px,1.15fr)}
+@media(max-width:800px){.herogrid{grid-template-columns:1fr}.hero-title{font-size:32px}}
+
+.devcard,.notecard{background:rgba(9,9,15,.62);border:1px solid var(--line);
+border-radius:20px;padding:17px 18px}
+.devstate{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:12.5px}
+.devstate i{width:8px;height:8px;border-radius:50%;background:#4a4a60;display:inline-block}
+body.live .devstate i{background:var(--grn);box-shadow:0 0 11px var(--grn)}
+.devname{font-size:19px;font-weight:650;margin:7px 0 16px;letter-spacing:-.01em}
+.devstats{display:flex;gap:20px;flex-wrap:wrap}
+.devstats div{display:flex;flex-direction:column}
+.devstats b{font-family:var(--mono);font-size:17px;font-weight:600}
+.devstats span{color:var(--dim);font-size:11px}
+.notecard{display:flex;flex-direction:column;justify-content:center}
+.notemeta{display:flex;gap:18px;flex-wrap:wrap;color:var(--dim);font-size:12px}
+.notemeta b{font-family:var(--mono);color:var(--tx)}
+
+/* ---------- cards ---------- */
+.card,.panel{background:linear-gradient(180deg,#16161f,#0f0f17);border:1px solid var(--line);
+border-radius:22px;padding:19px 21px}
+.cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+margin-bottom:16px;flex-wrap:wrap}
+.cardhead h3{margin:0;font-size:15px;font-weight:650;letter-spacing:-.01em}
+
+/* ---------- circular controls ---------- */
+.circlerow{display:flex;gap:16px;flex-wrap:wrap}
+.circle{display:flex;flex-direction:column;align-items:center;gap:9px;background:none;
+border:none;color:var(--dim);padding:0;width:86px;box-shadow:none}
+.circle svg{width:22px;height:22px;padding:17px;border-radius:50%;background:#1a1a27;
+border:1px solid var(--line);box-sizing:content-box;transition:.16s}
+.circle span{font-size:11.5px;line-height:1.3;text-align:center}
+.circle:hover:not(:disabled){background:none}
+.circle:hover:not(:disabled) svg{border-color:var(--acc);color:var(--acc2)}
+.circle.on{color:var(--tx)}
+.circle.on svg{background:rgba(124,92,255,.16);border-color:var(--acc);color:var(--acc2);
+box-shadow:0 0 0 4px rgba(124,92,255,.11),0 0 26px rgba(124,92,255,.34)}
+.asfile{cursor:pointer}
+#micBlock{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+#micBlock[hidden]{display:none}
+
+.transport{display:flex;align-items:center;gap:13px;margin-top:22px;flex-wrap:wrap}
+.transport .circle.sm{width:auto}
+.transport .circle.sm svg{width:15px;height:15px;padding:13px}
+.playbtn{width:62px;height:62px;border-radius:50%;border:none;padding:0;display:grid;
+place-items:center;color:#fff;background:linear-gradient(147deg,#9575ff,#6a45f5);
+box-shadow:0 10px 28px rgba(124,92,255,.42)}
+.playbtn:hover:not(:disabled){filter:brightness(1.12);border:none;background:
+linear-gradient(147deg,#9f82ff,#7550f8)}
+.playbtn svg{width:26px;height:26px}
+.instr{margin-left:auto;display:flex;align-items:center;gap:9px}
+.ghost{background:none}
+.tracecard canvas{border:none;border-radius:17px;background:rgba(7,7,12,.75);height:300px}
+
+/* ---------- floating bottom nav ---------- */
+body{padding-bottom:96px}
+nav#tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;top:auto;
+background:rgba(20,20,30,.92);backdrop-filter:blur(18px);border:1px solid var(--line);
+border-radius:99px;padding:6px;display:flex;gap:3px;z-index:30;
+box-shadow:0 12px 38px rgba(0,0,0,.6);width:auto}
+nav#tabs button{border-radius:99px;padding:10px 17px;display:flex;align-items:center;gap:8px;
+color:var(--dim);border:none;background:none;border-bottom:none;box-shadow:none}
+nav#tabs button svg{width:18px;height:18px;flex:none}
+nav#tabs button span{font-size:12px}
+nav#tabs button.on{background:rgba(124,92,255,.17);color:var(--tx);font-weight:600;
+border-bottom:none;box-shadow:none}
+nav#tabs .badge{margin-left:2px;font-style:normal}
+@media(max-width:720px){nav#tabs button span{display:none}nav#tabs button{padding:11px 13px}}
+
+/* ---------- focus mode ---------- */
+body.focus nav#tabs,body.focus .wrap:not(#stage),body.focus .card:not(.tracecard),
+body.focus .greet,body.focus .hero-title,body.focus .devcard{display:none}
+body.focus .herogrid{grid-template-columns:1fr}
+body.focus .hero{border:none;background:none;padding:0}
+body.focus #note{font-size:140px}
+body.focus #cents{font-size:54px}
+body.focus .tracecard canvas{height:56vh}
+body.focus .tracecard .note{display:none}
+</style>
+
+<header>
+  <h1>Pitchwise <small>spike</small></h1>
+  <span id="status" class="pill">idle</span>
+  <button id="focusBtn" class="ghost" style="margin-left:auto">Focus <kbd>F</kbd></button>
+</header>
+
+<div class="wrap" id="stage">
+
+  <div class="hero span2">
+    <p class="greet">Pitchwise spike <span>🎚️</span></p>
+    <h2 class="hero-title">Your pitch,<br><span class="grad">live.</span></h2>
+
+    <div class="herogrid">
+      <div class="devcard">
+        <div class="devstate"><i id="devDot"></i> <span id="devState">Idle</span></div>
+        <div class="devname" id="devName">No input selected</div>
+        <div class="devstats">
+          <div><b id="fps">—</b><span>frames/s</span></div>
+          <div><b id="lat">—</b><span>ms latency</span></div>
+          <div><b id="rmsv">—</b><span>rms</span></div>
+        </div>
+      </div>
+
+      <div class="notecard">
+        <div id="note" class="muted">—</div>
+        <div id="cents" class="muted">—</div>
+        <div class="bar"><u></u><i></i><b id="needle"></b></div>
+        <div class="notemeta">
+          <span><b id="hz">—</b> Hz</span>
+          <span>clarity <b id="clar">—</b></span>
+          <span id="gate">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span2">
+    <div class="cardhead">
+      <h3>Input</h3>
+      <span class="muted" id="srcHint">choose a source, then play</span>
+    </div>
+
+    <div class="circlerow">
+      <button class="circle on" data-src="mic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+        <span>Microphone</span>
+      </button>
+      <button class="circle" data-src="synth">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round"><path d="M3 12h3l2-7 4 14 3-9 2 4h4"/></svg>
+        <span>Synth</span>
+      </button>
+      <label class="circle asfile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+          stroke-linecap="round"><path d="M12 16V4M8 8l4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <span>Load .wav</span>
+        <input type="file" id="takeLoad" accept="audio/wav,audio/*" hidden>
+      </label>
+    </div>
+    <select id="source" hidden>
+      <option value="mic">microphone</option>
+      <option value="synth">internal synth</option>
+    </select>
+
+    <div id="micBlock">
+      <div class="row"><label>Permission</label>
+        <span id="micPerm" class="pill muted">not requested</span>
+        <button id="micCheck" class="ghost">Request access</button></div>
+      <div class="row"><label>Input device</label>
+        <select id="micDev" style="max-width:250px"><option>— grant access first —</option></select></div>
+      <div class="row"><label>Input level</label>
+        <div class="bar" style="flex:1;min-width:150px;margin:0;height:22px">
+          <b id="lvl" style="left:0;width:0;background:var(--grn);transition:none"></b></div></div>
+      <table id="micSettings"><tbody></tbody></table>
+      <p class="note">Auto-gain, noise suppression and echo cancellation must all read
+        <b>false</b>. Chrome sometimes ignores the request; this table shows what the
+        track actually reports. If any is on, the gate thresholds (§6) and latency (§7)
+        would be measured against processed audio and would not be valid.</p>
+    </div>
+
+    <div class="transport">
+      <button id="pause" class="circle sm" disabled title="Pause capture (P)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5" width="4" height="14" rx="1"/>
+        <rect x="13" y="5" width="4" height="14" rx="1"/></svg></button>
+      <button id="start" class="playbtn" title="Start (space)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+      <button id="stop" class="circle sm" disabled title="Stop (space)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg></button>
+      <span id="recInd" class="pill muted">0.0 s</span>
+      <div class="instr">
+        <label class="muted">Instrument</label>
+        <select id="profile"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span2 tracecard">
+    <div class="cardhead"><h3>Pitch trace</h3>
+      <span class="muted">raw · filtered · <span class="g">on pitch</span>
+      <span class="a">close</span> <span class="r">off</span></span></div>
+    <canvas id="trace"></canvas>
+    <p class="note">Dim violet is raw Stage E output; the glowing line is Stage F.
+      <kbd>space</kbd> start/stop · <kbd>P</kbd> pause capture · <kbd>F</kbd> focus
+      · <kbd>1</kbd>–<kbd>5</kbd> tabs</p>
+  </div>
+</div>
+
+<nav id="tabs">
+  <button data-tab="setup" class="on">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/>
+    <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+    <span>Setup</span></button>
+  <button data-tab="calib">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+    <path d="M3 12h3l3-8 4 16 3-8h5"/></svg><span>Calibrate</span></button>
+  <button data-tab="measure">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Measure</span></button>
+  <button data-tab="rec">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/>
+    <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+    <span>Takes</span><em class="badge" id="recCount" hidden></em></button>
+  <button data-tab="log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+    <path d="M5 4h14v16H5zM8 9h8M8 13h8M8 17h5"/></svg><span>Log</span></button>
+</nav>
+
+<div class="wrap">
+
+  <div class="panel" data-tab="setup">
+    <h2>Stages A–E — configuration</h2>
+    <div class="row"><label>Analysis window</label>
+      <select id="winSize"><option>1024</option><option selected>2048</option><option>4096</option></select>
+      <span class="muted" id="winInfo"></span></div>
+    <div class="row"><label>Hop size</label>
+      <select id="hopSize"><option>256</option><option selected>512</option><option>1024</option></select></div>
+    <div class="row"><label>Gate threshold (B)</label>
+      <input type="range" id="gateT" min="0" max="0.15" step="0.0005" value="0.01">
+      <output id="gateTv">0.0100</output></div>
+    <div class="row"><label>Clarity threshold (D)</label>
+      <input type="range" id="clarT" min="0.5" max="1" step="0.005" value="0.90">
+      <output id="clarTv">0.900</output></div>
+    <div class="row"><label>Octave guard (C)</label>
+      <select id="guard">
+        <option value="0" selected>off — ADR-003 as written</option>
+        <option value="0.25">0.25</option>
+        <option value="0.35">0.35</option>
+      </select></div>
+    <div class="row"><label>Range clamp (E)</label>
+      <span id="rangeInfo" class="muted"></span></div>
+    <p class="note">Octave guard re-checks tau/2 and tau/3 against a relaxed
+      threshold; it removes sub-octave errors above ~2.5 kHz at the cost of some
+      clarity. Off by default — see RESULTS.md §6. Changing window, hop or guard
+      restarts the worklet. Range comes from
+      the §6 profile table and is locked.</p>
+  </div>
+
+  <div class="panel" data-tab="setup">
+    <h2>Stage F — median filter</h2>
+    <div class="row"><label>Filter</label>
+      <button id="filtOn" class="switch on" role="switch" aria-checked="true"></button>
+      <span class="muted">A/B against the raw trace</span></div>
+    <div class="row"><label>Median window</label>
+      <input type="range" id="medW" min="1" max="9" step="2" value="5">
+      <output id="medWv">5</output> <span class="muted" id="medLat"></span></div>
+    <div class="row"><label>Octave band</label>
+      <input type="range" id="octB" min="0.005" max="0.10" step="0.005" value="0.03">
+      <output id="octBv">3.0%</output></div>
+    <div class="row"><label>Onset suppression (H)</label>
+      <input type="range" id="onsetN" min="0" max="12" step="1" value="0">
+      <output id="onsetNv">0</output> <span class="muted">frames</span></div>
+    <div class="row"><label>Corrections fired</label>
+      <span id="corr">0</span> <span class="muted">of</span> <span id="corrOf">0</span>
+      <span class="muted">voiced frames</span></div>
+    <p class="note">Suppressed onset frames render dim red — count how many are
+      garbage on a plucked attack to fill the Stage H <code>[TBM]</code>.</p>
+  </div>
+
+  <div class="panel" data-tab="calib">
+    <h2>Calibration — gate threshold (§6 [TBM])</h2>
+    <p class="note" style="margin-top:0">Measure the room, then the instrument.
+      Threshold is placed between the two.</p>
+    <div class="row">
+      <button id="calNoise">1. Record silence (3 s)</button>
+      <span id="calNoiseV" class="muted">—</span></div>
+    <div class="row">
+      <button id="calSig">2. Play/sing quietly (3 s)</button>
+      <span id="calSigV" class="muted">—</span></div>
+    <div class="row"><label>Suggested</label>
+      <span id="calSuggest" class="muted">—</span>
+      <button id="calApply" disabled>Apply</button></div>
+    <table id="gateTable"><thead><tr><th>Instrument</th><th class="n">gateThreshold</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="panel" data-tab="measure">
+    <h2>§7.1 — measurements</h2>
+    <div class="row"><button id="tLat">Pipeline latency (10 s)</button>
+      <span class="muted">worklet capture → canvas paint</span></div>
+    <div class="row"><button id="tLoop">Acoustic loopback ×8</button>
+      <span class="muted">speakers on, mic live → hardware input latency</span></div>
+    <div class="row"><button id="tSweep">Accuracy sweep</button>
+      <select id="sweepTimbre">
+        <option value="sine">sine</option>
+        <option value="rich" selected>rich (weak f0)</option>
+        <option value="saw">saw</option>
+      </select>
+      <span class="muted">semitone steps over profile range</span></div>
+    <div class="row"><button id="tMetro">Metronome bleed (10 s)</button>
+      <input type="number" id="metroBpm" value="90" min="40" max="200" style="width:64px">
+      <span class="muted">bpm</span>
+      <input type="range" id="metroGain" min="0" max="1" step="0.02" value="0.5">
+      <output id="metroGainV">0.50</output></div>
+    <p class="note">Latency and loopback need real hardware; sweep and A/B do not.
+      Every result is appended to the log below.</p>
+  </div>
+
+  <div class="panel span2" data-tab="rec">
+    <h2>Recordings</h2>
+    <div class="row">
+      <span class="muted">Every Start → Stop is captured. Pause suspends capture
+      without stopping the display. Max 60 s.</span>
+      <span class="muted">Load a .wav from the Input card above.</span>
+    </div>
+    <table id="takeTable">
+      <thead><tr><th>#</th><th>Source</th><th class="n">Length</th><th class="n">Voiced</th>
+      <th>Actions</th></tr></thead><tbody></tbody></table>
+  </div>
+
+  <div class="panel span2" data-tab="log">
+    <h2>Results log — paste into AUDIO_PIPELINE.md</h2>
+    <div class="row">
+      <button id="copy">Copy markdown</button>
+      <button id="clearLog">Clear</button>
+      <span class="muted">only measured values appear here; nothing is estimated</span>
+    </div>
+    <pre id="log">No measurements yet.</pre>
+  </div>
+
+</div>
+
+<script type="module">
+/* ===========================================================================
+   Pitchwise spike — application layer.
+   Stages A–E run in the worklet; F–I here. See docs/AUDIO_PIPELINE.md.
+   Throwaway code: no framework, no build step, no dependencies.
+   =========================================================================== */
+
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 2) => (v == null || !isFinite(v) ? '—' : v.toFixed(d));
+
+/* ---- worklet processor source (appended to dsp-core.js in a blob) -------- */
+const PROCESSOR_SRC = `
+class PitchProcessor extends AudioWorkletProcessor {
+  constructor(opt) {
+    super();
+    const o = opt.processorOptions, D = globalThis.PitchwiseDSP;
+    this.D = D;
+    this.windowSize = o.windowSize;
+    this.ra = new D.RingAnalyzer(o.windowSize, o.hopSize);
+    this.yin = new D.Yin(o.windowSize, sampleRate, o.yinThreshold, o.octaveGuard);
+    this.profile = o.profile;
+    this.clarityThreshold = o.clarityThreshold;
+    // Reused message object: postMessage structured-clones synchronously, so
+    // one object serves every frame and process() allocates nothing.
+    this.msg = { type:'f', timestamp:0, voiced:false, hz:null, clarity:0,
+                 rms:0, reason:0, captureTime:0, procUs:0, recPos:0 };
+    this.alive = true;
+    this.loopback = false; this.loopThresh = 0.15;
+    this.recording = false; this.recBuf = null; this.recPos = 0; this.capturePaused = false;
+    this.hasPerf = typeof performance !== 'undefined' && typeof performance.now === 'function';
+    this.port.onmessage = e => {
+      const d = e.data;
+      if (d.type === 'config') {
+        if (d.profile) this.profile = d.profile;
+        if (d.clarityThreshold != null) this.clarityThreshold = d.clarityThreshold;
+      } else if (d.type === 'reset') { this.ra.reset(); }
+      else if (d.type === 'loopback') { this.loopThresh = d.threshold; this.loopback = true; }
+      else if (d.type === 'record') {
+        this.recBuf = new Float32Array(d.frames); this.recPos = 0;
+        this.recording = true; this.capturePaused = false;
+      } else if (d.type === 'pauseRecord') { this.capturePaused = d.on; }
+      else if (d.type === 'endRecord') {
+        const b = this.recBuf; this.recording = false; this.recBuf = null;
+        if (b) this.port.postMessage({ type:'rec', buf:b, length:this.recPos, sampleRate }, [b.buffer]);
+        else this.port.postMessage({ type:'rec', buf:null, length:0, sampleRate });
+      } else if (d.type === 'stop') { this.alive = false; }
+    };
+  }
+  process(inputs) {
+    const input = inputs[0];
+    if (!input || input.length === 0) return this.alive;
+    const ch = input[0];
+    if (!ch) return this.alive;
+    const n = ch.length;
+
+    if (this.loopback) {
+      const th = this.loopThresh;
+      for (let i = 0; i < n; i++) {
+        const v = ch[i] < 0 ? -ch[i] : ch[i];
+        if (v > th) { this.loopback = false;
+          this.port.postMessage({ type:'loop', at: currentTime + i / sampleRate }); break; }
+      }
+    }
+    if (this.recording && !this.capturePaused) {
+      const b = this.recBuf; let p = this.recPos;
+      const k = p + n <= b.length ? n : b.length - p;
+      for (let i = 0; i < k; i++) b[p + i] = ch[i];
+      this.recPos = p + k;
+      if (this.recPos >= b.length) {          // hit the cap; hand it over early
+        this.recording = false;
+        this.port.postMessage({ type:'rec', buf:b, length:this.recPos, sampleRate }, [b.buffer]);
+        this.recBuf = null;
+      }
+    }
+
+    this.ra.push(ch);
+    const blockStart = this.ra.total - n;
+    while (this.ra.hasFrame()) {
+      const t0 = this.hasPerf ? performance.now() : 0;
+      const buf = this.ra.takeFrame();
+      const m = this.msg;
+      this.D.stageBtoE(buf, this.windowSize, this.yin, this.profile, this.clarityThreshold, m);
+      m.timestamp = (this.ra.frameEnd / sampleRate) * 1000;
+      // Audio-clock time of the newest sample in this analysis window.
+      m.captureTime = currentTime + (this.ra.frameEnd - blockStart) / sampleRate;
+      m.procUs = this.hasPerf ? (performance.now() - t0) * 1000 : -1;
+      m.recPos = this.recPos;
+      this.port.postMessage(m);
+    }
+    return this.alive;
+  }
+}
+registerProcessor('pitch-processor', PitchProcessor);
+`;
+
+/* ---- state -------------------------------------------------------------- */
+let D, dspText, ctx, node, micStream, srcNode, muteGain, synthOsc, synthGain;
+let running = false, profile = null;
+let filt = null, hist = [], voicedRun = 0, frameCount = 0, fpsT = 0, fpsN = 0;
+let latSamples = [], latCollecting = false, procUs = [];
+let clickTimes = [], metroActive = false, metroFrames = [];
+let takes = [], takeSeq = 0, pendingTake = null, loopResolve = null;
+let capturePaused = false, captureSegments = 1;
+const MAX_TAKE_S = 60;
+const results = [];
+
+/* ---- boot --------------------------------------------------------------- */
+dspText = await (await fetch('./dsp-core.js')).text();
+(0, eval)(dspText);                       // same source, main thread
+D = globalThis.PitchwiseDSP;
+
+const psel = $('profile');
+D.PROFILES.forEach(p => psel.add(new Option(p.label + '  (' + p.nominal + ')', p.id)));
+psel.value = 'tenor';
+profile = D.profileById(psel.value);
+
+/* ---- UI wiring ---------------------------------------------------------- */
+function syncProfileUI() {
+  $('rangeInfo').textContent = profile.fMin + '–' + profile.fMax + ' Hz'
+    + (profile.transposition ? '  · notation ' + (profile.transposition > 0 ? '+' : '')
+       + profile.transposition + ' semitones' : '');
+  $('gateT').value = profile.gateThreshold;
+  $('gateTv').textContent = (+profile.gateThreshold).toFixed(4);
+  drawGateTable();
+}
+function syncWindowUI() {
+  const W = +$('winSize').value, H = +$('hopSize').value;
+  const sr = ctx ? ctx.sampleRate : 48000;
+  const floorHz = sr / ((W >> 1) - 1);
+  $('winInfo').textContent = (W / sr * 1000).toFixed(1) + ' ms · floor '
+    + floorHz.toFixed(1) + ' Hz · ' + (sr / H).toFixed(0) + ' frames/s';
+  $('winInfo').className = floorHz > profile.fMin ? 'warn' : 'muted';
+  $('medLat').textContent = '≈ ' + ((+$('medW').value - 1) / 2 * (H / sr) * 1000).toFixed(0)
+    + ' ms added';
+}
+psel.onchange = () => {
+  profile = D.profileById(psel.value);
+  syncProfileUI(); syncWindowUI(); pushConfig(); hist.length = 0;
+};
+$('gateT').oninput = e => {
+  profile.gateThreshold = +e.target.value;
+  profile.gateMeasured = false;
+  $('gateTv').textContent = profile.gateThreshold.toFixed(4);
+  pushConfig(); drawGateTable();
+};
+$('clarT').oninput = e => { $('clarTv').textContent = (+e.target.value).toFixed(3); pushConfig(); };
+$('medW').oninput = e => { $('medWv').textContent = e.target.value; rebuildFilter(); syncWindowUI(); };
+$('octB').oninput = e => { $('octBv').textContent = (e.target.value * 100).toFixed(1) + '%'; rebuildFilter(); };
+$('onsetN').oninput = e => { $('onsetNv').textContent = e.target.value; };
+$('metroGain').oninput = e => { $('metroGainV').textContent = (+e.target.value).toFixed(2); };
+$('filtOn').onclick = e => {
+  const on = e.target.classList.toggle('on');
+  e.target.setAttribute('aria-checked', String(on));
+};
+$('guard').onchange = $('winSize').onchange = $('hopSize').onchange = async () => {
+  syncWindowUI(); if (running) { await stop(); await start(); }
+};
+document.querySelectorAll('.circle[data-src]').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.circle[data-src]').forEach(o => o.classList.remove('on'));
+    b.classList.add('on');
+    const src = b.dataset.src;
+    $('source').value = src;
+    $('micBlock').hidden = src !== 'mic';
+    if (!running) $('devName').textContent = src === 'mic' ? 'Microphone' : 'Internal synth';
+    if (src === 'mic') {
+      $('srcHint').textContent = 'requesting microphone access…';
+      requestMic();
+    } else {
+      $('srcHint').textContent = 'no microphone needed';
+    }
+  };
+});
+
+$('start').onclick = start;
+$('stop').onclick = stop;
+
+// Pause suspends *capture* only. The live readout and trace keep running, so
+// you can watch your pitch while deciding what to play next; only the take
+// stops growing. The result is a spliced take — see the Recordings note.
+function setPaused(on) {
+  if (!running) return;
+  capturePaused = on;
+  if (on) captureSegments++;
+  node.port.postMessage({ type: 'pauseRecord', on });
+  $('pause').classList.toggle('on', on);
+  $('recInd').classList.toggle('paused', on);
+  setStatus(on ? 'capture paused — live display still running' : 'running', on ? 'warn' : 'ok');
+}
+$('pause').onclick = () => setPaused(!capturePaused);
+
+function rebuildFilter() {
+  filt = new D.MedianOctaveFilter(+$('medW').value, +$('octB').value);
+}
+function pushConfig() {
+  if (node) node.port.postMessage({ type:'config', profile:{ ...profile },
+    clarityThreshold: +$('clarT').value });
+}
+function drawGateTable() {
+  $('gateTable').tBodies[0].innerHTML = D.PROFILES.map(p =>
+    `<tr><td>${p.label}</td><td class="n ${p.gateMeasured ? 'g' : 'muted'}">`
+    + `${p.gateThreshold.toFixed(4)}${p.gateMeasured ? '' : ' <span class="muted">[TBM]</span>'}`
+    + `</td></tr>`).join('');
+}
+rebuildFilter(); syncProfileUI(); syncWindowUI();
+$('micBlock').hidden = $('source').value !== 'mic';
+
+/* ---- navigation ---------------------------------------------------------
+   The page serves two different activities: watching the trace while you play,
+   and operating controls at the keyboard. Tabs keep one panel on screen so the
+   readout never scrolls away; focus mode drops everything but the readout for
+   when you are a metre from the screen with an instrument in your hands.
+   -------------------------------------------------------------------------- */
+const tabBtns = [...document.querySelectorAll('#tabs button')];
+const tabPanels = [...document.querySelectorAll('.panel[data-tab]')];
+
+function showTab(name) {
+  tabBtns.forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  tabPanels.forEach(p => { p.hidden = p.dataset.tab !== name; });
+}
+tabBtns.forEach(b => { b.onclick = () => showTab(b.dataset.tab); });
+showTab('setup');
+
+function toggleFocus(on) {
+  const want = on == null ? !document.body.classList.contains('focus') : on;
+  document.body.classList.toggle('focus', want);
+  $('focusBtn').classList.toggle('on', want);
+}
+$('focusBtn').onclick = () => toggleFocus();
+
+addEventListener('keydown', e => {
+  const t = e.target.tagName;
+  if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+  if (e.key === ' ') { e.preventDefault(); (running ? stop : start)(); }
+  else if (e.key === 'p' || e.key === 'P') setPaused(!capturePaused);
+  else if (e.key === 'f' || e.key === 'F') toggleFocus();
+  else if (e.key === 'Escape') toggleFocus(false);
+  else if (e.key >= '1' && e.key <= '5') { toggleFocus(false); showTab(tabBtns[+e.key - 1].dataset.tab); }
+});
+
+/* ---- microphone: permission, device choice, constraint verification -----
+   §9 item 1. getUserMedia is the one part of the path that can fail for
+   environmental reasons — permission, no device, device busy — so it reports
+   precisely which, rather than a generic failure.
+   -------------------------------------------------------------------------- */
+const MIC_CONSTRAINTS = {
+  echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+  channelCount: 1
+};
+
+async function micPermissionState() {
+  try {
+    const st = await navigator.permissions.query({ name: 'microphone' });
+    return st.state;                        // granted | denied | prompt
+  } catch { return 'unknown'; }             // Firefox does not support this query
+}
+
+async function listMics(selectedId) {
+  const devices = (await navigator.mediaDevices.enumerateDevices())
+    .filter(d => d.kind === 'audioinput');
+  const sel = $('micDev');
+  sel.innerHTML = '';
+  if (!devices.length) { sel.add(new Option('— no input devices found —', '')); return; }
+  devices.forEach((d, i) => sel.add(new Option(d.label || `Input ${i + 1}`, d.deviceId)));
+  if (selectedId) sel.value = selectedId;
+  return devices;
+}
+
+function showTrackSettings(track) {
+  const st = track.getSettings();
+  const want = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+  const rows = Object.entries(want).map(([k, v]) => {
+    const got = st[k];
+    const ok = got === v || got === undefined;
+    return `<tr><td>${k}</td><td class="n ${ok ? 'g' : 'r'}">`
+      + `${got === undefined ? 'not reported' : String(got)}${ok ? '' : ' — NOT HONOURED'}</td></tr>`;
+  });
+  rows.push(`<tr><td>sampleRate</td><td class="n">${st.sampleRate || ctx.sampleRate} Hz</td></tr>`);
+  rows.push(`<tr><td>device</td><td class="n">${track.label || 'unnamed'}</td></tr>`);
+  $('micSettings').tBodies[0].innerHTML = rows.join('');
+  const bad = Object.entries(want).filter(([k, v]) => st[k] !== undefined && st[k] !== v);
+  if (bad.length)
+    setStatus(`warning: ${bad.map(b => b[0]).join(', ')} still on — measurements invalid`, 'bad');
+  return bad.length === 0;
+}
+
+function micError(err) {
+  const map = {
+    NotAllowedError: 'permission denied — click the camera/mic icon in the address bar to re-allow',
+    NotFoundError: 'no microphone found — check it is plugged in and selected in System Settings',
+    NotReadableError: 'microphone is busy — another app (Zoom, Teams, QuickTime) is holding it',
+    OverconstrainedError: 'this device cannot meet the requested constraints',
+    SecurityError: 'blocked — the page must be served over https or localhost'
+  };
+  return map[err.name] || `${err.name}: ${err.message}`;
+}
+
+/**
+ * Ask for the microphone, verify the constraints were honoured, then release it
+ * again. Selecting the Microphone source calls this directly — the browser only
+ * shows its prompt in response to a click, so this has to be driven by the same
+ * gesture that chose the source, not deferred to Start.
+ */
+async function requestMic() {
+  $('micPerm').className = 'pill muted';
+  $('micPerm').textContent = 'requesting…';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: MIC_CONSTRAINTS });
+    const track = stream.getAudioTracks()[0];
+    await listMics(track.getSettings().deviceId);
+    const clean = showTrackSettings(track);
+    $('devName').textContent = track.label || 'Microphone';
+    stream.getTracks().forEach(t => t.stop());     // release until Start
+    $('micPerm').className = 'pill ok';
+    $('micPerm').textContent = 'granted';
+    $('micCheck').textContent = 'Re-check';
+    $('srcHint').textContent = clean
+      ? 'microphone ready — press play' : 'constraints not honoured, see below';
+    setStatus(clean ? 'microphone ready — §9 item 1 confirmed'
+      : 'microphone works, but constraints were not honoured', clean ? 'ok' : 'warn');
+    return true;
+  } catch (err) {
+    $('micPerm').className = 'pill bad';
+    $('micPerm').textContent = err.name === 'NotAllowedError' ? 'denied' : err.name;
+    $('srcHint').textContent = micError(err);
+    setStatus(micError(err), 'bad');
+    return false;
+  }
+}
+$('micCheck').onclick = requestMic;
+
+micPermissionState().then(async st => {
+  if (st === 'granted') { $('micPerm').className = 'pill ok'; $('micPerm').textContent = 'granted';
+    await listMics(); $('micCheck').textContent = 'Re-check'; }
+  else if (st === 'denied') { $('micPerm').className = 'pill bad'; $('micPerm').textContent = 'denied'; }
+});
+
+/* ---- audio graph -------------------------------------------------------- */
+async function start() {
+  if (running) return;
+  const useMic = $('source').value === 'mic';
+  try {
+    ctx = new AudioContext({ latencyHint: 'interactive' });
+    await ctx.resume();
+    const blob = new Blob([dspText + '\n' + PROCESSOR_SRC], { type: 'application/javascript' });
+    await ctx.audioWorklet.addModule(URL.createObjectURL(blob));
+
+    if (useMic) {
+      // These three must be off: AGC and noise suppression mangle pitch and
+      // make the gate thresholds unmeasurable; echo cancellation breaks the
+      // acoustic loopback test.
+      const chosen = $('micDev').value;
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: chosen ? { ...MIC_CONSTRAINTS, deviceId: { exact: chosen } } : MIC_CONSTRAINTS });
+      const track = micStream.getAudioTracks()[0];
+      await listMics(track.getSettings().deviceId);
+      showTrackSettings(track);
+      $('devName').textContent = track.label || 'Microphone';
+      $('micPerm').innerHTML = '<span class="g">granted</span>';
+      srcNode = ctx.createMediaStreamSource(micStream);
+    } else {
+      synthOsc = ctx.createOscillator(); synthOsc.type = 'sawtooth';
+      synthOsc.frequency.value = D.midiToHz(60);
+      synthGain = ctx.createGain(); synthGain.gain.value = 0.25;
+      synthOsc.connect(synthGain); synthOsc.start();
+      srcNode = synthGain;
+    }
+
+    node = new AudioWorkletNode(ctx, 'pitch-processor', {
+      numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1],
+      processorOptions: {
+        windowSize: +$('winSize').value, hopSize: +$('hopSize').value,
+        yinThreshold: D.DEFAULTS.yinThreshold, octaveGuard: +$('guard').value,
+        clarityThreshold: +$('clarT').value, profile: { ...profile }
+      }
+    });
+    node.port.onmessage = onWorkletMessage;
+    muteGain = ctx.createGain(); muteGain.gain.value = 0;   // keeps the node pulled
+    srcNode.connect(node); node.connect(muteGain).connect(ctx.destination);
+
+    running = true; exitReview();
+    // The buffer is allocated here, on a message, never inside process().
+    node.port.postMessage({ type: 'record', frames: Math.floor(ctx.sampleRate * MAX_TAKE_S) });
+    $('start').disabled = true; $('stop').disabled = false; $('pause').disabled = false;
+    capturePaused = false; captureSegments = 1;
+    $('pause').classList.remove('on');
+    $('recInd').classList.remove('paused'); $('recInd').textContent = '0.0 s';
+    setStatus('running · ' + ctx.sampleRate + ' Hz · base latency '
+      + (ctx.baseLatency * 1000).toFixed(1) + ' ms', 'ok');
+    document.body.classList.add('live');
+    $('devState').textContent = 'Capturing · ' + ctx.sampleRate + ' Hz';
+    if (!useMic) $('devName').textContent = 'Internal synth';
+    syncWindowUI();
+  } catch (err) {
+    setStatus(useMic ? micError(err) : ('failed: ' + err.message), 'bad');
+    $('start').disabled = false; $('stop').disabled = true; $('pause').disabled = true;
+    running = false;
+    console.error(err);
+  }
+}
+
+async function stop() {
+  running = false;
+  if (node) {
+    // Collect whatever was captured between Start and Stop before tearing down.
+    const handed = new Promise(res => { pendingTake = res; setTimeout(res, 1500); });
+    node.port.postMessage({ type: 'endRecord' });
+    await handed;
+    pendingTake = null;
+    node.port.postMessage({ type: 'stop' }); node.disconnect(); node = null;
+  }
+  if (synthOsc) { try { synthOsc.stop(); } catch {} synthOsc = null; }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (ctx) { await ctx.close(); ctx = null; }
+  $('start').disabled = false; $('stop').disabled = true; $('pause').disabled = true;
+  document.body.classList.remove('live');
+  $('devState').textContent = 'Idle';
+  $('pause').classList.remove('on');
+  $('recInd').classList.remove('paused');
+  capturePaused = false;
+  setStatus('stopped', '');
+}
+function setStatus(t, c) { const s = $('status'); s.textContent = t; s.className = 'pill ' + c; }
+
+/* ---- Stages F–I (main thread) ------------------------------------------- */
+function onWorkletMessage(e) {
+  const d = e.data;
+  if (d.type === 'loop') { if (loopResolve) { loopResolve(d.at); loopResolve = null; } return; }
+  if (d.type === 'rec') {
+    if (d.buf && d.length > 0)
+      addTake(d.buf.slice(0, d.length), d.sampleRate, $('source').value === 'mic' ? 'microphone' : 'synth');
+    if (pendingTake) pendingTake();
+    return;
+  }
+
+  frameCount++; fpsN++;
+  { const pct = Math.min(100, Math.sqrt(d.rms) * 180);
+    const el = $('lvl');
+    el.style.width = pct + '%';
+    el.style.background = d.rms > profile.gateThreshold ? 'var(--grn)' : 'var(--dim)'; }
+  if (d.recPos != null && ctx)
+    $('recInd').textContent = (d.recPos / ctx.sampleRate).toFixed(1) + ' s';
+  if (d.procUs >= 0) { procUs.push(d.procUs); if (procUs.length > 2000) procUs.shift(); }
+
+  // Stage F — median filter + octave correction.
+  const useFilter = $('filtOn').classList.contains('on');
+  const f = filt.push(d.voiced ? d.hz : null);
+  const shown = d.voiced ? (useFilter ? f : d.hz) : null;
+
+  // Stage H — onset suppression: the first N frames of a voiced run are the
+  // attack transient and are not yet periodic.
+  voicedRun = d.voiced ? voicedRun + 1 : 0;
+  const suppressed = d.voiced && voicedRun <= +$('onsetN').value;
+
+  hist.push({ t: d.timestamp, raw: d.voiced ? d.hz : null, filt: shown,
+              voiced: d.voiced, clarity: d.clarity, rms: d.rms, reason: d.reason,
+              suppressed, captureTime: d.captureTime, perfNow: performance.now() });
+  if (hist.length > 4000) hist.splice(0, hist.length - 4000);
+
+  if (metroActive) metroFrames.push({ captureTime: d.captureTime, voiced: d.voiced,
+    rms: d.rms, clarity: d.clarity, reason: d.reason });
+}
+
+/* ---- Stage H — canvas --------------------------------------------------- */
+const cv = $('trace'), g = cv.getContext('2d');
+let spanMs = 5000;          // widened to the whole take in review mode
+let reviewMode = false;
+
+function centsClass(c) { const a = Math.abs(c); return a <= 10 ? '#3ddc84' : a <= 25 ? '#f2c14e' : '#ff5d6c'; }
+
+function render() {
+  requestAnimationFrame(render);
+  if (player && !player.paused) {
+    const el = $('pos-' + player.take.n);
+    if (el) el.textContent = clock(playHead()) + ' / ' + clock(player.take.secs);
+  }
+  const dpr = devicePixelRatio || 1;
+  const W = cv.clientWidth * dpr, H = cv.clientHeight * dpr;
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+  g.clearRect(0, 0, W, H);
+
+  // Y axis is linear in semitones = logarithmic in Hz (§3 Stage H).
+  const mLo = D.hzToMidi(profile.fMin), mHi = D.hzToMidi(profile.fMax);
+  const y = hz => H - (D.hzToMidi(hz) - mLo) / (mHi - mLo) * H;
+
+  // --- grid: octave lines, then one faint rule per second -----------------
+  g.lineWidth = 1;
+  g.strokeStyle = 'rgba(255,255,255,.05)';
+  g.fillStyle = '#55556a';
+  g.font = '500 ' + (10 * dpr) + 'px ui-monospace,monospace';
+  for (let m = Math.ceil(mLo / 12) * 12; m <= mHi; m += 12) {
+    const yy = Math.round(y(D.midiToHz(m))) + 0.5;
+    g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke();
+    g.fillText(D.noteName(m), 7 * dpr, yy - 5 * dpr);
+  }
+
+  if (!hist.length) { drawIdle(W, H, dpr); return; }
+  const now = hist[hist.length - 1].t;
+  const x = t => (t - (now - spanMs)) / spanMs * W;
+
+  g.strokeStyle = 'rgba(255,255,255,.028)';
+  for (let t = Math.ceil((now - spanMs) / 1000) * 1000; t <= now; t += 1000) {
+    const xx = Math.round(x(t)) + 0.5;
+    g.beginPath(); g.moveTo(xx, 0); g.lineTo(xx, H); g.stroke();
+  }
+
+  // --- break the history into continuous runs -----------------------------
+  // A run ends at an unvoiced frame, a suppressed onset frame, or a hole in
+  // the frame stream; without that the line would bridge straight across a
+  // rest and imply pitch that was never sung.
+  const visible = hist.filter(h => h.t >= now - spanMs);
+  const hop = +$('hopSize').value, sr = ctx ? ctx.sampleRate : 48000;
+  const maxGap = (hop / sr) * 1000 * 2.5;
+
+  const runs = (key, skipSuppressed) => {
+    const out = []; let cur = [], prevT = null;
+    for (const h of visible) {
+      const v = h[key];
+      const usable = v != null && !(skipSuppressed && h.suppressed);
+      if (!usable || (prevT != null && h.t - prevT > maxGap)) {
+        if (cur.length > 1) out.push(cur);
+        cur = [];
+      }
+      if (usable) {
+        cur.push([x(h.t), y(v), key === 'filt' ? D.nearestNote(v).cents : 0]);
+        prevT = h.t;
+      } else prevT = null;
+    }
+    if (cur.length > 1) out.push(cur);
+    return out;
+  };
+
+  const strokeRuns = (list, width, style, blur) => {
+    g.save();
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    g.lineWidth = width * dpr; g.strokeStyle = style;
+    if (blur) { g.shadowColor = style; g.shadowBlur = blur * dpr; }
+    for (const run of list) {
+      g.beginPath(); g.moveTo(run[0][0], run[0][1]);
+      for (let i = 1; i < run.length; i++) g.lineTo(run[i][0], run[i][1]);
+      g.stroke();
+    }
+    g.restore();
+  };
+
+  // raw Stage E output, thin and dim — the A/B reference for Stage F
+  strokeRuns(runs('raw', false), 1, 'rgba(167,139,250,.20)', 0);
+
+  // Stage F output: a violet glow pass, then a core coloured per frame by the
+  // §3 Stage G bands, so accuracy is still readable at a glance.
+  const fr = runs('filt', true);
+  strokeRuns(fr, 3.5, 'rgba(124,92,255,.5)', 14);
+  g.save();
+  g.lineJoin = 'round'; g.lineCap = 'round'; g.lineWidth = 2 * dpr;
+  for (const run of fr) {
+    for (let i = 1; i < run.length; i++) {
+      g.strokeStyle = centsClass(run[i][2]);
+      g.beginPath(); g.moveTo(run[i - 1][0], run[i - 1][1]);
+      g.lineTo(run[i][0], run[i][1]); g.stroke();
+    }
+  }
+  g.restore();
+
+  // suppressed onset frames stay visible as dim marks so they can be counted
+  g.fillStyle = 'rgba(255,93,108,.38)';
+  for (const h of visible) {
+    if (!h.suppressed || h.filt == null) continue;
+    g.beginPath(); g.arc(x(h.t), y(h.filt), 1.7 * dpr, 0, 6.284); g.fill();
+  }
+
+  // playhead: the current pitch, glowing
+  for (let i = visible.length - 1; i >= 0; i--) {
+    const h = visible[i];
+    if (h.filt == null || h.suppressed) continue;
+    const c = centsClass(D.nearestNote(h.filt).cents);
+    g.save(); g.shadowColor = c; g.shadowBlur = 18 * dpr; g.fillStyle = c;
+    g.beginPath(); g.arc(x(h.t), y(h.filt), 4.2 * dpr, 0, 6.284); g.fill();
+    g.restore();
+    g.fillStyle = '#fff';
+    g.beginPath(); g.arc(x(h.t), y(h.filt), 1.5 * dpr, 0, 6.284); g.fill();
+    break;
+  }
+
+  updateReadout();
+}
+
+function drawIdle(W, H, dpr) {
+  g.fillStyle = '#4a4a60';
+  g.font = (12.5 * dpr) + 'px -apple-system,system-ui,sans-serif';
+  g.fillText('no frames — press Start', 16 * dpr, H / 2);
+}
+
+function updateReadout() {
+  const h = hist[hist.length - 1];
+  const t = performance.now();
+  if (t - fpsT > 500) { $('fps').textContent = (fpsN / ((t - fpsT) / 1000)).toFixed(0);
+    fpsN = 0; fpsT = t; }
+
+  $('rmsv').textContent = fmt(h.rms, 4);
+  $('clar').textContent = fmt(h.clarity, 3);
+  const R = D.REASON;
+  const gtxt = ['voiced', 'below amplitude gate', 'below clarity gate', 'outside range'][h.reason];
+  $('gate').innerHTML = `<span class="${h.reason ? 'muted' : 'g'}">${gtxt}</span>`;
+
+  // Stage B must silence the display during rests (§9 item 5).
+  const live = hist.slice(-3).some(v => v.filt != null && !v.suppressed);
+  if (!live) {
+    $('note').textContent = '—'; $('note').className = 'muted';
+    $('cents').textContent = '—'; $('cents').className = 'muted';
+    $('hz').textContent = '—'; $('needle').style.left = '50%';
+    return;
+  }
+  const last = [...hist].reverse().find(v => v.filt != null && !v.suppressed);
+  const n = D.nearestNote(last.filt);
+  $('note').textContent = n.name; $('note').className = '';
+  $('cents').textContent = (n.cents >= 0 ? '+' : '') + n.cents.toFixed(1) + '¢';
+  $('cents').style.color = centsClass(n.cents);
+  $('note').style.color = centsClass(n.cents);
+  $('hz').textContent = last.filt.toFixed(2);
+  $('needle').style.left = `calc(${50 + Math.max(-50, Math.min(50, n.cents / 50 * 50))}% - 2px)`;
+
+  $('corr').textContent = filt.corrections;
+  $('corrOf').textContent = filt.pushes;
+
+  // §7.1 latency: map the frame's audio-clock capture time onto the
+  // performance clock via getOutputTimestamp, then compare with paint time.
+  if (ctx && ctx.getOutputTimestamp) {
+    const ts = ctx.getOutputTimestamp();
+    if (ts.contextTime != null && ts.performanceTime != null) {
+      const perfCapture = ts.performanceTime + (h.captureTime - ts.contextTime) * 1000;
+      const lat = performance.now() - perfCapture;
+      if (lat > 0 && lat < 500) {
+        $('lat').textContent = lat.toFixed(1);
+        if (latCollecting) latSamples.push(lat);
+      }
+    }
+  }
+}
+requestAnimationFrame(render);
+
+/* =========================== §7.1 measurements ============================ */
+
+function log(title, lines) {
+  results.push({ title, lines });
+  $('log').textContent = results.map(r =>
+    `### ${r.title}\n${r.lines.map(l => '- ' + l).join('\n')}`).join('\n\n');
+  $('log').scrollTop = $('log').scrollHeight;
+}
+$('clearLog').onclick = () => { results.length = 0; $('log').textContent = 'No measurements yet.'; };
+$('copy').onclick = async () => {
+  await navigator.clipboard.writeText($('log').textContent);
+  setStatus('copied', 'ok');
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function requireRunning() {
+  if (!running) { setStatus('start the audio first', 'bad'); return false; }
+  return true;
+}
+const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y);
+  return s.length & 1 ? s[(s.length - 1) >> 1] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+const pct = (a, p) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y);
+  return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
+
+/* ---- gate-threshold calibration (§6 [TBM]) ------------------------------ */
+async function grabRms(ms, label) {
+  const from = hist.length;
+  setStatus(label, 'warn');
+  await sleep(ms);
+  setStatus('running', 'ok');
+  return hist.slice(from).map(h => h.rms);
+}
+let noiseRms = null, sigRms = null;
+$('calNoise').onclick = async () => {
+  if (!requireRunning()) return;
+  const v = await grabRms(3000, 'recording silence — stay quiet');
+  noiseRms = { median: median(v), p95: pct(v, 0.95), max: Math.max(...v) };
+  $('calNoiseV').textContent = `median ${fmt(noiseRms.median, 4)} · p95 ${fmt(noiseRms.p95, 4)} · max ${fmt(noiseRms.max, 4)}`;
+  suggestGate();
+};
+$('calSig').onclick = async () => {
+  if (!requireRunning()) return;
+  const v = await grabRms(3000, 'play or sing quietly, sustained');
+  sigRms = { median: median(v), p05: pct(v, 0.05), min: Math.min(...v) };
+  $('calSigV').textContent = `median ${fmt(sigRms.median, 4)} · p05 ${fmt(sigRms.p05, 4)}`;
+  suggestGate();
+};
+function suggestGate() {
+  if (!noiseRms || !sigRms) return;
+  // Geometric mean of the room's loud tail and the instrument's quiet tail:
+  // sits between them proportionally rather than favouring either.
+  const s = Math.sqrt(noiseRms.p95 * sigRms.p05);
+  const ok = sigRms.p05 > noiseRms.p95 * 2;
+  $('calSuggest').innerHTML = `<span class="${ok ? 'g' : 'a'}">${s.toFixed(4)}</span>`
+    + (ok ? '' : ' <span class="warn">— headroom < 2×, quiet notes will drop</span>');
+  $('calApply').disabled = false;
+  $('calApply').onclick = () => {
+    profile.gateThreshold = +s.toFixed(4);
+    profile.gateMeasured = true;
+    syncProfileUI(); pushConfig();
+    log(`Gate threshold — ${profile.label}`, [
+      `**gateThreshold = ${s.toFixed(4)}** (linear RMS)`,
+      `room noise: median ${fmt(noiseRms.median, 4)}, p95 ${fmt(noiseRms.p95, 4)}`,
+      `quiet signal: median ${fmt(sigRms.median, 4)}, p05 ${fmt(sigRms.p05, 4)}`,
+      `headroom p05/p95 = ${(sigRms.p05 / noiseRms.p95).toFixed(2)}×${ok ? '' : ' — marginal'}`,
+      `sample rate ${ctx.sampleRate} Hz, window ${$('winSize').value}`]);
+  };
+}
+
+/* ---- pipeline latency --------------------------------------------------- */
+$('tLat').onclick = async () => {
+  if (!requireRunning()) return;
+  latSamples = []; procUs = []; latCollecting = true;
+  setStatus('measuring latency — keep playing for 10 s', 'warn');
+  await sleep(10000);
+  latCollecting = false; setStatus('running', 'ok');
+  if (latSamples.length < 10) { log('Pipeline latency', ['FAILED — too few frames; was there signal?']); return; }
+  const sr = ctx.sampleRate, hop = +$('hopSize').value, W = +$('winSize').value;
+  const medW = +$('medW').value;
+  log('Pipeline latency (worklet capture → canvas paint)', [
+    `**median ${fmt(median(latSamples), 1)} ms**, p95 ${fmt(pct(latSamples, .95), 1)} ms, `
+      + `worst ${fmt(Math.max(...latSamples), 1)} ms (n=${latSamples.length})`,
+    `context baseLatency ${fmt(ctx.baseLatency * 1000, 1)} ms, `
+      + `outputLatency ${fmt((ctx.outputLatency || 0) * 1000, 1)} ms`,
+    `A hop fill: ${fmt(hop / sr * 1000, 1)} ms · window ${fmt(W / sr * 1000, 1)} ms`,
+    `B–E detection: median ${procUs.length ? fmt(median(procUs) / 1000, 2) : '—'} ms/frame, `
+      + `p95 ${procUs.length ? fmt(pct(procUs, .95) / 1000, 2) : '—'} ms`,
+    `F median filter: ${fmt((medW - 1) / 2 * hop / sr * 1000, 1)} ms (${medW} frames)`,
+    `audio-thread load ≈ ${procUs.length ? fmt(median(procUs) / (hop / sr * 1e6) * 100, 1) : '—'}% `
+      + `of one core at ${(sr / hop).toFixed(0)} frames/s`,
+    `EXCLUDES hardware/OS input buffering — run the acoustic loopback for that.`]);
+};
+
+/* ---- acoustic loopback: hardware input latency -------------------------- */
+function clickBuffer(gain) {
+  const sr = ctx.sampleRate, dur = 0.03;
+  const b = ctx.createBuffer(1, Math.ceil(dur * sr), sr);
+  const d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++)
+    d[i] = Math.sin(2 * Math.PI * 1000 * i / sr) * Math.exp(-i / (sr * 0.004)) * gain;
+  return b;
+}
+function playAt(buf, at) {
+  const s = ctx.createBufferSource(); s.buffer = buf;
+  s.connect(ctx.destination); s.start(at); return s;
+}
+$('tLoop').onclick = async () => {
+  if (!requireRunning()) return;
+  if ($('source').value !== 'mic') { setStatus('loopback needs the microphone source', 'bad'); return; }
+  setStatus('loopback — speakers up, room quiet', 'warn');
+  const buf = clickBuffer(0.9), trips = [];
+  for (let i = 0; i < 8; i++) {
+    const at = ctx.currentTime + 0.35;
+    const got = new Promise(res => { loopResolve = res; setTimeout(() => res(null), 1200); });
+    node.port.postMessage({ type: 'loopback', threshold: 0.12 });
+    playAt(buf, at);
+    const detected = await got;
+    if (detected != null) trips.push((detected - at) * 1000);
+    await sleep(450);
+  }
+  setStatus('running', 'ok');
+  if (trips.length < 3) { log('Acoustic loopback', [
+    `FAILED — ${trips.length}/8 clicks detected. Raise speaker volume or lower the detection threshold.`]); return; }
+  const rt = median(trips), out = (ctx.baseLatency + (ctx.outputLatency || 0)) * 1000;
+  log('Acoustic loopback — hardware + OS input latency', [
+    `**round trip median ${fmt(rt, 1)} ms** (${trips.length}/8 detected, `
+      + `spread ${fmt(Math.min(...trips), 1)}–${fmt(Math.max(...trips), 1)} ms)`,
+    `reported output latency ${fmt(out, 1)} ms`,
+    `**input side ≈ ${fmt(rt - out, 1)} ms** (round trip − output latency)`,
+    `Speaker→mic air path adds ~3 ms per metre; subtract it if the distance is large.`]);
+};
+
+/* ---- accuracy sweep (§7.1 Accuracy) ------------------------------------- */
+function synth(hz, sr, dur, timbre) {
+  const n = Math.floor(sr * dur), b = new Float32Array(n);
+  let harm;
+  if (timbre === 'sine') harm = [1];
+  else if (timbre === 'saw') { harm = []; for (let k = 1; k <= 16; k++) harm.push(1 / k); }
+  else harm = [0.12, 1, 0.85, 0.55, 0.35, 0.22, 0.14];  // deliberately weak fundamental
+  let peak = 0;
+  for (let i = 0; i < n; i++) {
+    let v = 0;
+    for (let k = 0; k < harm.length; k++) {
+      const f = hz * (k + 1);
+      if (f < sr / 2) v += harm[k] * Math.sin(2 * Math.PI * f * i / sr);
+    }
+    const env = Math.min(1, i / (sr * 0.01));           // 10 ms attack
+    v = v * env + (Math.random() - 0.5) * 0.002;        // a little noise
+    b[i] = v; if (Math.abs(v) > peak) peak = Math.abs(v);
+  }
+  const k = peak > 0 ? 0.35 / peak : 1;
+  for (let i = 0; i < n; i++) b[i] *= k;
+  return b;
+}
+$('tSweep').onclick = () => {
+  const sr = ctx ? ctx.sampleRate : 48000;
+  const timbre = $('sweepTimbre').value;
+  const opts = { windowSize: +$('winSize').value, hopSize: +$('hopSize').value,
+    profile: { ...profile }, clarityThreshold: +$('clarT').value,
+    octaveGuard: +$('guard').value,
+    medianWindow: +$('medW').value, octaveBand: +$('octB').value, medianFilter: true };
+  const lo = Math.ceil(D.hzToMidi(profile.fMin) + 0.5), hi = Math.floor(D.hzToMidi(profile.fMax) - 0.5);
+  const errs = [], dropped = [], worst = { cents: 0, note: '' };
+  for (let m = lo; m <= hi; m++) {
+    const truth = D.midiToHz(m);
+    const frames = D.analyzeBuffer(synth(truth, sr, 0.45, timbre), sr, opts);
+    const v = frames.filter(f => f.voiced && f.filtered != null).slice(3);
+    if (!v.length) { dropped.push(D.noteName(m)); continue; }
+    for (const f of v) {
+      const c = Math.abs(D.hzToCents(f.filtered, truth));
+      errs.push(c);
+      if (c > worst.cents) { worst.cents = c; worst.note = D.noteName(m); }
+    }
+  }
+  const mean = errs.reduce((a, b) => a + b, 0) / (errs.length || 1);
+  log(`Accuracy — synthesized sweep, ${timbre} timbre, ${profile.label}`, [
+    `**mean absolute deviation ${fmt(mean, 2)} cents**, p95 ${fmt(pct(errs, .95), 2)}, `
+      + `**worst ${fmt(worst.cents, 2)} cents** at ${worst.note}`,
+    `${hi - lo + 1} semitones ${D.noteName(lo)}–${D.noteName(hi)}, ${errs.length} voiced frames`,
+    dropped.length ? `**no detection at: ${dropped.join(', ')}**` : 'every semitone detected',
+    `window ${opts.windowSize}, hop ${opts.hopSize}, clarity ≥ ${opts.clarityThreshold}, `
+      + `sr ${sr} Hz, octave guard ${opts.octaveGuard || 'off'}`,
+    `Signal path is in-process — this is detector accuracy, not microphone accuracy.`]);
+};
+
+/* ---- recordings ---------------------------------------------------------
+   A take is whatever was captured between Start and Stop. It is the fixed
+   input §7.1 asks for: the octave A/B is only meaningful run twice over
+   identical audio, so takes can be saved to .wav and loaded back later.
+   -------------------------------------------------------------------------- */
+function exitReview() { reviewMode = false; spanMs = 5000; hist.length = 0; rebuildFilter(); }
+
+function addTake(samples, sampleRate, source) {
+  const t = { n: ++takeSeq, samples, sampleRate, source, segments: captureSegments,
+              at: new Date(), secs: samples.length / sampleRate, coverage: null };
+  takes.unshift(t);
+  renderTakes();
+  if (!document.body.classList.contains('focus')) showTab('rec');
+  setStatus(`take ${t.n} captured — ${t.secs.toFixed(1)} s`, 'ok');
+  return t;
+}
+
+function renderTakes() {
+  const badge = $('recCount');
+  badge.textContent = takes.length;
+  badge.hidden = !takes.length;
+  const tb = $('takeTable').tBodies[0];
+  if (!takes.length) {
+    tb.innerHTML = '<tr><td colspan="5" class="muted">'
+      + 'Nothing recorded yet — press Start, play, then Stop.</td></tr>';
+    return;
+  }
+  tb.innerHTML = takes.map(t => `<tr>
+    <td>${t.n}</td>
+    <td>${t.source}${t.segments > 1 ? ' <span class="a">· ' + t.segments + ' segments</span>' : ''}
+      <br><span class="muted">${t.at.toLocaleTimeString()}</span></td>
+    <td class="n">${t.secs.toFixed(1)} s</td>
+    <td class="n">${t.coverage == null ? '<span class="muted">—</span>'
+      : '<span class="' + (t.coverage > .6 ? 'g' : 'a') + '">' + (t.coverage * 100).toFixed(0) + '%</span>'}</td>
+    <td>
+      <button data-act="play" data-n="${t.n}">${
+        player && player.take === t && !player.paused ? '⏸' : '▶'}</button>${
+        player && player.take === t
+          ? `<button data-act="stopplay" data-n="${t.n}">■</button>
+             <span class="muted" id="pos-${t.n}">${clock(playHead())} / ${clock(t.secs)}</span>`
+          : ''}
+      <button data-act="trace" data-n="${t.n}">Trace</button>
+      <button data-act="ab" data-n="${t.n}">A/B</button>
+      <button data-act="wav" data-n="${t.n}">.wav</button>
+    </td></tr>`).join('');
+}
+
+$('takeTable').onclick = e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const t = takes.find(x => x.n === +b.dataset.n);
+  if (!t) return;
+  ({ play: playTake, stopplay: stopPlay, trace: traceTake, ab: abTake, wav: saveTake })[b.dataset.act](t);
+};
+
+function analyseTake(t, medianFilter) {
+  return D.analyzeBuffer(t.samples, t.sampleRate, {
+    windowSize: +$('winSize').value, hopSize: +$('hopSize').value,
+    profile: { ...profile }, clarityThreshold: +$('clarT').value,
+    octaveGuard: +$('guard').value, medianWindow: +$('medW').value,
+    octaveBand: +$('octB').value, medianFilter });
+}
+
+/* Playback transport. A take can be played, paused mid-way and resumed from
+   where it stopped, or stopped outright. AudioBufferSourceNode is one-shot and
+   cannot be restarted, so pause records the elapsed offset, stops the node, and
+   resume starts a fresh node at that offset. */
+let player = null;        // { take, src, startedAt, offset, paused }
+let playCtx = null;       // separate from the capture context so Stop cannot kill playback
+
+function getPlayCtx() {
+  if (!playCtx || playCtx.state === 'closed') playCtx = new AudioContext();
+  return playCtx;
+}
+
+function startPlay(t, offset) {
+  const c = getPlayCtx();
+  c.resume();
+  const ab = c.createBuffer(1, t.samples.length, t.sampleRate);
+  ab.getChannelData(0).set(t.samples);
+  const src = c.createBufferSource();
+  src.buffer = ab;
+  src.connect(c.destination);
+  src.start(0, offset);
+  player = { take: t, src, startedAt: c.currentTime, offset, paused: false };
+  src.onended = () => {
+    if (player && player.src === src && !player.paused) { player = null; renderTakes(); }
+  };
+  const feedback = running && $('source').value === 'mic' && !capturePaused;
+  setStatus(`playing take ${t.n}`
+    + (feedback ? ' — mic is live and capturing, use headphones' : ''),
+    feedback ? 'warn' : 'ok');
+  renderTakes();
+}
+
+function pausePlay() {
+  if (!player || player.paused) return;
+  player.offset += getPlayCtx().currentTime - player.startedAt;
+  player.src.onended = null;
+  try { player.src.stop(); } catch {}
+  player.paused = true;
+  renderTakes();
+}
+
+function stopPlay() {
+  if (!player) return;
+  player.src.onended = null;
+  try { player.src.stop(); } catch {}
+  player = null;
+  renderTakes();
+  setStatus(running ? 'running' : 'stopped', running ? 'ok' : '');
+}
+
+/** The ▶/⏸ button: play, pause, or resume this take. */
+function playTake(t) {
+  if (player && player.take === t) {
+    if (player.paused) startPlay(t, player.offset);
+    else pausePlay();
+    return;
+  }
+  if (player) stopPlay();
+  startPlay(t, 0);
+}
+
+const clock = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+
+function playHead() {
+  if (!player) return 0;
+  const at = player.paused ? player.offset
+    : player.offset + (getPlayCtx().currentTime - player.startedAt);
+  return Math.min(at, player.take.secs);
+}
+
+// Re-run Stages A–F over a take and paint it, so it can be inspected without
+// the microphone, and re-inspected after changing any parameter.
+function traceTake(t) {
+  const frames = analyseTake(t, $('filtOn').classList.contains('on'));
+  hist.length = 0;
+  let run = 0;
+  const onsetN = +$('onsetN').value;
+  for (const f of frames) {
+    run = f.voiced ? run + 1 : 0;
+    hist.push({ t: f.timestamp, raw: f.voiced ? f.hz : null, filt: f.filtered,
+      voiced: f.voiced, clarity: f.clarity, rms: f.rms, reason: f.reason,
+      suppressed: f.voiced && run <= onsetN, captureTime: 0, perfNow: 0 });
+  }
+  reviewMode = true;
+  spanMs = t.secs * 1000;
+  t.coverage = frames.filter(f => f.voiced).length / (frames.length || 1);
+  renderTakes();
+  setStatus(`take ${t.n} — ${(t.coverage * 100).toFixed(0)}% of `
+    + `${frames.length} frames voiced`, 'ok');
+}
+
+function abTake(t) {
+  const off = analyseTake(t, false), on = analyseTake(t, true);
+  const b = +$('octB').value;
+  const rOff = D.octaveErrorRateHeuristic(off, b, false);
+  const rOn = D.octaveErrorRateHeuristic(on, b, true);
+  const drop = rOff.rate > 0 ? (1 - rOn.rate / rOff.rate) * 100 : null;
+  t.coverage = off.filter(f => f.voiced).length / (off.length || 1);
+  renderTakes();
+  log(`Octave error rate — take ${t.n}, filter off vs on`, [
+    `**filter OFF: ${(rOff.rate * 100).toFixed(2)}%** (${rOff.errors}/${rOff.voiced} voiced frames)`,
+    `**filter ON:  ${(rOn.rate * 100).toFixed(2)}%** (${rOn.errors}/${rOn.voiced} voiced frames)`,
+    drop == null ? 'no octave errors present in the unfiltered pass'
+      : `**reduction ${drop.toFixed(1)}%**`,
+    `Stage F corrections fired: ${on.corrections}`,
+    `take ${t.secs.toFixed(1)} s from ${t.source}, ${profile.label}, window `
+      + `${$('winSize').value}, median ${$('medW').value}, band ±${(b * 100).toFixed(1)}%, `
+      + `octave guard ${+$('guard').value || 'off'}`,
+    `**Scoring is heuristic** — an error is a frame within ±${(b * 100).toFixed(1)}% of `
+      + `2×/0.5× the local ±11-frame median, since a live take has no ground truth.`]);
+}
+
+/** 16-bit PCM mono WAV. */
+function encodeWav(samples, sampleRate) {
+  const n = samples.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const str = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE');
+  str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true);
+  v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  str(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0, o = 44; i < n; i++, o += 2) {
+    const x = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+
+function saveTake(t) {
+  const stamp = t.at.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const name = `take${t.n}-${profile.id}-${stamp}.wav`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(encodeWav(t.samples, t.sampleRate));
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  log('Take saved', [`\`${name}\` — ${t.secs.toFixed(1)} s at ${t.sampleRate} Hz, ${t.source}`,
+    `Load it back to re-run the A/B on identical audio after changing any parameter.`]);
+}
+
+$('takeLoad').onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const c = ctx || new AudioContext();
+  try {
+    const audio = await c.decodeAudioData(await file.arrayBuffer());
+    addTake(new Float32Array(audio.getChannelData(0)), audio.sampleRate, file.name);
+  } catch (err) {
+    setStatus('could not decode that file: ' + err.message, 'bad');
+  }
+  e.target.value = '';
+};
+renderTakes();
+
+/* ---- metronome bleed (§3 Stage B open question / MANIFEST OQ2) ---------- */
+$('tMetro').onclick = async () => {
+  if (!requireRunning()) return;
+  const bpm = +$('metroBpm').value, gain = +$('metroGain').value;
+  const interval = 60 / bpm, buf = clickBuffer(gain);
+  clickTimes = []; metroFrames = []; metroActive = true;
+  setStatus('metronome running — STAY SILENT, do not play', 'warn');
+  const t0 = ctx.currentTime + 0.3;
+  for (let i = 0; i * interval < 10; i++) {
+    const at = t0 + i * interval;
+    playAt(buf, at); clickTimes.push(at);
+  }
+  await sleep(10500);
+  metroActive = false; setStatus('running', 'ok');
+  const winDur = (+$('winSize').value) / ctx.sampleRate;
+  let near = 0, passedB = 0, passedAll = 0;
+  for (const f of metroFrames) {
+    // a frame "contains" a click if the click falls inside its analysis window
+    const start = f.captureTime - winDur;
+    if (!clickTimes.some(c => c >= start && c <= f.captureTime)) continue;
+    near++;
+    if (f.reason !== D.REASON.AMPLITUDE) passedB++;
+    if (f.voiced) passedAll++;
+  }
+  log('Metronome bleed through the amplitude gate (MANIFEST OQ2)', [
+    near === 0 ? '**No frames overlapped a click** — check that clicks were audible.'
+      : `**${passedB}/${near} click frames passed the Stage B amplitude gate (${(passedB / near * 100).toFixed(1)}%)**`,
+    near ? `**${passedAll}/${near} survived all gates and would have displayed a pitch (${(passedAll / near * 100).toFixed(1)}%)**` : '',
+    `${clickTimes.length} clicks at ${bpm} bpm, click gain ${gain.toFixed(2)}, `
+      + `gate ${profile.gateThreshold.toFixed(4)}, clarity ≥ ${$('clarT').value}`,
+    passedAll === 0 ? '**Verdict: no bleed at this level — no mitigation needed.**'
+      : '**Verdict: bleed confirmed — route the metronome to headphones, or suppress '
+        + 'analysis in a window around each click (§3 Stage B fallback).**',
+    `Run once through speakers and once through headphones; the difference is the answer.`].filter(Boolean));
+};
+</script>
