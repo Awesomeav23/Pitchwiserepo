@@ -1,0 +1,28 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build:worklet && vite",
+    "build": "npm run build:worklet && tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "build:worklet": "esbuild src/audio/pitch-processor.ts --bundle --format=iife --target=es2022 --outfile=public/pitch-processor.js --log-level=warning"
+  },
+  "dependencies": {
+    "pitchy": "^4.1.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "^0.28.2",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}
