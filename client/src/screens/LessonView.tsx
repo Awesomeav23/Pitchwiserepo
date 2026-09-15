@@ -184,14 +184,14 @@ function QuizView({
 function resolveExercise(lesson: Lesson): Exercise | null {
   if (lesson.exerciseSlug) return exerciseBySlug(lesson.exerciseSlug);
   if (!lesson.inlineExercise) return null;
-  const { title, bpm, sequence } = lesson.inlineExercise;
+  const { slug, title, bpm, typeId, difficulty, sequence } = lesson.inlineExercise;
   const midis = sequence.notes.map((n) => n.midi);
   return {
-    slug: `inline-${lesson.id}`,
+    slug,
     title,
     description: '',
-    typeId: 'scale',
-    difficulty: 1,
+    typeId,
+    difficulty,
     tempoBpm: bpm,
     timeSignature: '4/4',
     lowestMidi: Math.min(...midis),

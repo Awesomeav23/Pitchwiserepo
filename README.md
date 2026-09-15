@@ -72,7 +72,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
 | Client | 8 of 15 screens built — catalog, course, four lesson kinds, practice take, tuner |
 | Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
-| Server | Not started |
+| Server | **Built.** Express + Postgres, all endpoints, 55 end-to-end checks passing |
 
 ### Spike — what remains
 
@@ -175,6 +175,12 @@ server exists.
 ```sh
 cd client && npm install && npm run dev     # the app, on :5173
 npm run verify                              # 20 headless checks on take scoring
+
+docker compose up -d                        # Postgres on :5433
+cd server && npm install
+npm run migrate && npm run seed             # schema, then reference data
+npm run dev                                 # the API, on :8787
+npm run verify                              # 55 end-to-end checks (needs the API running)
 ```
 
 `npm run dev` bundles the AudioWorklet with esbuild before starting Vite. The worklet does

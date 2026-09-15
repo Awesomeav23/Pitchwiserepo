@@ -63,11 +63,11 @@ function seq(spec: string, bpm: number, shift: number): NoteSequence {
 const writtenSpecShift = (c: InstrumentCourse) => c.rangeShift + c.notationShift;
 
 const SPECS = {
-  firstThree: { spec: 'C4 D4 E4 D4 C4.', bpm: 80 },
-  scale: { spec: 'C4 D4 E4 F4 G4 F4 E4 D4 C4.', bpm: 90 },
-  descending: { spec: 'G4 F4 E4 D4 C4 G4 F4 E4 D4 C4.', bpm: 76 },
-  melody: { spec: 'E4 D4 C4 D4 E4 E4 E4. D4 D4 D4. E4 G4 G4.', bpm: 96 },
-  octave: { spec: 'C4 D4 E4 F4 G4 A4 B4 C5.', bpm: 100 },
+  firstThree: { spec: 'C4 D4 E4 D4 C4.', bpm: 80, typeId: 'scale', difficulty: 1 },
+  scale: { spec: 'C4 D4 E4 F4 G4 F4 E4 D4 C4.', bpm: 90, typeId: 'scale', difficulty: 1 },
+  descending: { spec: 'G4 F4 E4 D4 C4 G4 F4 E4 D4 C4.', bpm: 76, typeId: 'warmup', difficulty: 1 },
+  melody: { spec: 'E4 D4 C4 D4 E4 E4 E4. D4 D4 D4. E4 G4 G4.', bpm: 96, typeId: 'scale', difficulty: 2 },
+  octave: { spec: 'C4 D4 E4 F4 G4 A4 B4 C5.', bpm: 100, typeId: 'scale', difficulty: 2 },
 } as const;
 
 function scoreBlock(c: InstrumentCourse, key: keyof typeof SPECS, caption: string): Block {
@@ -118,8 +118,11 @@ export function generateCourse(c: InstrumentCourse): Course {
     completionRule: rule,
     blocks,
     inlineExercise: {
+      slug: `${c.instrumentId.replace(/_/g, '-')}-${key}`,
       title,
       bpm: SPECS[key].bpm,
+      typeId: SPECS[key].typeId,
+      difficulty: SPECS[key].difficulty,
       sequence: seq(SPECS[key].spec, SPECS[key].bpm, c.rangeShift),
     },
   });

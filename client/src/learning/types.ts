@@ -53,7 +53,16 @@ export interface Lesson {
   quiz?: Quiz;
   /** For kind 'exercise'. Slug of a seed exercise, or an inline one. */
   exerciseSlug?: string;
-  inlineExercise?: { title: string; bpm: number; sequence: NoteSequence };
+  /** A transposed variant emitted alongside the course (DATA_MODEL §11.9).
+   *  Carries a type and difficulty because it becomes an `exercises` row. */
+  inlineExercise?: {
+    slug: string;
+    title: string;
+    bpm: number;
+    typeId: 'scale' | 'interval' | 'warmup' | 'arpeggio';
+    difficulty: number;
+    sequence: NoteSequence;
+  };
 }
 
 export interface Module {

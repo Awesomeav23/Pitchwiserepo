@@ -1,15 +1,15 @@
 # MANIFEST.md
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
-**Phase:** 3 of 3 — documents complete. Client substantially built and **entirely unverified**; server not started; hardware measurements not started
+**Phase:** 3 of 3 — documents complete. Server built and verified; client substantially built and **entirely unverified**; hardware measurements not started
 **Last checkpoint:** 2026-09-15 (all 12 starter courses written; unverified in a browser)
 
 ---
 
 ## Progress
 
-**Documents:** 7 / 7 complete. **Client:** 8 of 15 screens. **Server:** not started.
-**Measurements:** not started.
+**Documents:** 7 / 7 complete. **Client:** 8 of 15 screens, not wired to the API.
+**Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
 headless scoring checks; the audio path, the engraving and the quiz flow have never run.
@@ -42,7 +42,7 @@ headless scoring checks; the audio path, the engraving and the quiz flow have ne
 | Client: remaining 7 screens | Not started — sign-in, onboarding, exercise library, exercise detail, scorecard, attempt history, mic-denied. List in `README.md` |
 | `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
 | Course seed generator | **Built.** `learning/generate.ts` + `learning/content.ts`. Emits all 12 courses from one skeleton; refuses a course whose notation shift disagrees with its instrument profile |
-| Server | Not started — contract in `API_SPEC.md`, now including §15 |
+| Server | **Built and verified.** Express + Postgres. Every endpoint in `API_SPEC.md` §§5–8, §12 and §15. 55 end-to-end checks pass against a real database (`cd server && npm run verify`) |
 
 ### Spike status against `AUDIO_PIPELINE.md` §9
 
@@ -146,8 +146,9 @@ Then, in order:
    became its second caller. Unverified in a browser.
 2. ~~**The practice-take screen**~~ **Done.** Never run against a microphone — opening it
    is the cheapest outstanding verification in the project.
-3. **The server**, `API_SPEC.md` §§5–8 before §15. Progress currently lives in
-   `localStorage`, which LEARNING_PLATFORM §7 explicitly says it must not.
+3. ~~**The server**~~ **Built.** Progress is now server-evaluated as
+   LEARNING_PLATFORM §7 requires — but the client still writes to `localStorage`
+   and has not been pointed at it.
 4. ~~**One starter course, end to end, for one instrument**~~ **All twelve written**, via
    the generator. None has been walked by a person — that is now the outstanding gap.
 
@@ -187,3 +188,4 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | First starter course written by hand — voice, tenor, 8 lessons across 3 modules |
 | 2026-09-15 | All 12 starter courses written (98 lessons) via the seed generator; catalog grouped by family, no unpublished entries |
 | 2026-09-15 | Transposition sign convention fixed: guitar and bass were −12 against clarinet's +2. Now +12, and stated in AUDIO_PIPELINE §6 |
+| 2026-09-15 | Server built: Postgres schema, seed, auth, and every endpoint in API_SPEC §§5–8, §12, §15. 55 end-to-end checks pass |
