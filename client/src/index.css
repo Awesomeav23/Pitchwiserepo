@@ -314,3 +314,35 @@ button.play:hover { border-color: var(--acc); }
 .scorecard .notes td:nth-child(4), .scorecard .notes th:nth-child(4) { text-align: right; }
 
 .loading { opacity: .7; }
+
+/* ---- onboarding ---- */
+
+.big-question { font-size: 26px; font-weight: 650; margin: 0 0 8px; letter-spacing: -.02em; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 10px 15px; text-align: left;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+}
+.chip:hover { border-color: var(--acc); }
+.chip.on { border-color: var(--acc); background: #1e1a35; }
+.chip-name { font-size: 13.5px; }
+.chip-range { font-size: 10.5px; color: var(--dim); font-family: var(--mono); }
+
+.onboarding-foot { margin: 28px 0 14px; }
+.onboarding-foot button { padding: 11px 22px; font-size: 14px; }
+
+/* ---- microphone trouble ---- */
+
+.mic-trouble {
+  margin: 0 0 18px; padding: 20px 22px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 3px solid var(--red); border-radius: 14px;
+}
+.mic-trouble h2 { font-size: 15px; margin: 0 0 8px; color: var(--red); }
+.mic-trouble p { margin: 0 0 12px; font-size: 13.5px; }
+.mic-trouble ol { margin: 0 0 16px; padding-left: 20px; font-size: 13.5px; }
+.mic-trouble li { margin-bottom: 5px; }
+.mic-trouble-actions { display: flex; align-items: center; gap: 16px; }

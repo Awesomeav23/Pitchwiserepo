@@ -25,6 +25,8 @@ import { api } from '../api/client';
 import { describeError, useApi } from '../api/useApi';
 import type { Attempt } from '../api/types';
 import { Loading, Failed } from '../components/Async';
+import { MicTrouble } from '../components/MicTrouble';
+import { useMe } from '../api/useMe';
 import { durationOf } from '../exercises/types';
 import type { Exercise } from '../exercises/types';
 import { reduceToNoteResults } from '../practice/take';
@@ -109,8 +111,12 @@ function PracticeTake({
   library: ApiExercise[];
   onSelectSlug?: (slug: string) => void;
 }) {
-  const [profileId, setProfileId] = useState('voice_tenor');
+  const { primaryInstrumentId } = useMe();
+  // Defaults to what the user told onboarding they play, rather than to a voice
+  // type they may not be.
+  const [profileId, setProfileId] = useState(primaryInstrumentId ?? 'voice_tenor');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [micError, setMicError] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -199,6 +205,7 @@ function PracticeTake({
 
   const begin = useCallback(async () => {
     setError(null);
+    setMicError(null);
     setResult(null);
     resultsRef.current = null;
     framesRef.current = [];
@@ -231,7 +238,10 @@ function PracticeTake({
 
       setPhaseBoth('countIn');
     } catch (err) {
-      setError(err instanceof MicrophoneError ? err.message : String(err));
+      // A microphone failure gets the dedicated panel; anything else is a line
+      // of text, because only the microphone has actions worth spelling out.
+      if (err instanceof MicrophoneError) setMicError(err);
+      else setError(String(err));
       void engine.stop();
       setPhaseBoth('idle');
     }
@@ -324,6 +334,7 @@ function PracticeTake({
 
       {!embedded && <p className="stat">{exercise.description}</p>}
 
+      {micError != null && <MicTrouble error={micError} onRetry={() => void begin()} />}
       {error && <p className="alert error">{error}</p>}
       {saveError && (
         <p className="alert warn">

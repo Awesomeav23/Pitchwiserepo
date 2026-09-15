@@ -8,7 +8,7 @@
 
 ## Progress
 
-**Documents:** 7 / 7 complete. **Client:** 8 of 15 screens, not wired to the API.
+**Documents:** 7 / 7 complete. **Client:** 11 of 15 screens, wired to the API.
 **Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
@@ -189,3 +189,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | All 12 starter courses written (98 lessons) via the seed generator; catalog grouped by family, no unpublished entries |
 | 2026-09-15 | Transposition sign convention fixed: guitar and bass were −12 against clarinet's +2. Now +12, and stated in AUDIO_PIPELINE §6 |
 | 2026-09-15 | Server built: Postgres schema, seed, auth, and every endpoint in API_SPEC §§5–8, §12, §15. 55 end-to-end checks pass |
+| 2026-09-15 | Client wired to the API; progress moved off localStorage to server-evaluated. Hash routing added |
+| 2026-09-15 | Scorecard (US-06), onboarding (US-01) and the microphone-denied states (§5.1) built |

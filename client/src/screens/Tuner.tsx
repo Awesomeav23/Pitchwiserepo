@@ -16,6 +16,8 @@ import { PitchEngine, MicrophoneError } from '../audio/engine';
 import type { AudioInputKind, TrackReport } from '../audio/engine';
 import { assertContinuousPitch, onPitchFrames } from '../audio/note-source';
 import { INSTRUMENT_PROFILES, profileById, detectionFloorHz, profileBelowFloor } from '../audio/profiles';
+import { MicTrouble } from '../components/MicTrouble';
+import { useMe } from '../api/useMe';
 import { bandFor, hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { DEFAULT_CONFIG } from '../audio/types';
 import type { AnalysedFrame, InstrumentProfile } from '../audio/types';
@@ -26,11 +28,13 @@ const BAND_COLOR: Record<string, string> = {
 };
 
 export function Tuner() {
-  const [profileId, setProfileId] = useState('voice_tenor');
+  const { primaryInstrumentId } = useMe();
+  const [profileId, setProfileId] = useState(primaryInstrumentId ?? 'voice_tenor');
   const [inputKind, setInputKind] = useState<AudioInputKind>('mic');
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [micError, setMicError] = useState<unknown>(null);
   const [track, setTrack] = useState<TrackReport | null>(null);
 
   const profile = profileById(profileId);
@@ -64,6 +68,7 @@ export function Tuner() {
 
   const toggle = useCallback(async () => {
     setError(null);
+    setMicError(null);
     setBusy(true);
     try {
       if (engine.running) {
@@ -77,7 +82,8 @@ export function Tuner() {
         setRunning(true);
       }
     } catch (err) {
-      setError(err instanceof MicrophoneError ? err.message : String(err));
+      if (err instanceof MicrophoneError) setMicError(err);
+      else setError(String(err));
       setRunning(false);
     } finally {
       setBusy(false);
@@ -161,6 +167,7 @@ export function Tuner() {
         </button>
       </section>
 
+      {micError != null && <MicTrouble error={micError} onRetry={() => void toggle()} />}
       {error && <p className="alert error">{error}</p>}
 
       {!profile.isMeasured && (

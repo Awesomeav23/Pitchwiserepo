@@ -13,7 +13,7 @@ note; the courses tell you which note to go for and why.
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
 measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 9 of 15 screens.
+tuner mode working — 11 of 15 screens.
 
 ---
 
@@ -70,7 +70,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | 9 of 15 screens built — catalog, course, four lesson kinds, practice take, scorecard, tuner. Wired to the API |
+| Client | 11 of 15 screens built — onboarding, catalog, course, four lesson kinds, practice take, scorecard, mic-denied, tuner. Wired to the API |
 | Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
 | Server | **Built.** Express + Postgres, all endpoints, 55 end-to-end checks passing |
 
@@ -100,18 +100,18 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [x] Frame accumulation across a take, and reduction to per-note results
 - [x] Scoring: coverage, bands, mean absolute cents (`DATA_MODEL.md` §5.1)
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
-- [ ] Microphone device picker and permission pre-flight
+- [ ] Microphone device picker and permission pre-flight — the denied/unavailable states are built; choosing between two microphones is not
 
-**Screens — 6 of 15 remaining**
+**Screens — 4 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
-- [ ] Onboarding: choose instrument or voice (US-01)
+- [x] Onboarding: choose instrument or voice (US-01)
 - [ ] Exercise library (US-02)
 - [ ] Exercise detail with note preview (US-02)
 - [x] Practice take: count-in, metronome, target overlay, live trace (US-04, US-05)
 - [x] Scorecard (US-06) — deviation chart, per-note table, addressable by URL
 - [ ] Attempt history (US-07)
-- [ ] Microphone denied or unavailable (§5.1)
+- [x] Microphone denied or unavailable (§5.1) — per-cause guidance, not one message
 
 *Learning layer (ADR-012):*
 
