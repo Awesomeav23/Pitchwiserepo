@@ -315,6 +315,13 @@ Per ADR-010. `fMin` and `fMax` include margin beyond the nominal playing range.
 `transposition` is in semitones, applied to *notation display only* — never to the
 detected frequency.
 
+**Convention: `transposition` = written pitch − sounding pitch.** A B♭ clarinet's written
+C sounds B♭, a tone lower, so it is `+2`. A guitar's written C4 sounds C3, an octave
+lower, so it is `+12`. Guitar and bass were previously recorded as `−12`, which cannot be
+right alongside the clarinet's `+2` under any single convention — both instruments sound
+*below* written pitch, so both signs must point the same way. Corrected here and in
+`client/src/audio/profiles.ts`.
+
 | Instrument | Nominal range | fMin (Hz) | fMax (Hz) | Transposition | Gate threshold |
 |---|---|---|---|---|---|
 | Voice — soprano | C4–C6 | 240 | 1100 | 0 | `[TBM]` |
@@ -326,8 +333,8 @@ detected frequency.
 | Trumpet (Bb) | F#3–D6 | 170 | 1200 | +2 | `[TBM]` |
 | Violin | G3–A7 | 185 | 3600 | 0 | `[TBM]` |
 | Cello | C2–C6 | 60 | 1100 | 0 | `[TBM]` |
-| Guitar (melody) | E2–E6 | 75 | 1350 | −12 (notation) | `[TBM]` |
-| Bass (melody) | E1–G4 | 38 | 420 | −12 (notation) | `[TBM]` |
+| Guitar (melody) | E2–E6 | 75 | 1350 | +12 (notation) | `[TBM]` |
+| Bass (melody) | E1–G4 | 38 | 420 | +12 (notation) | `[TBM]` |
 | Piano (melody) | A0–C8 | 25 | 4200 | 0 | `[TBM]` |
 
 **Gate thresholds are all `[TBM]`** and must be measured per instrument with a real

@@ -6,8 +6,9 @@ traced against the target in real time, then get a per-note scorecard measuring 
 cents sharp or flat you were.
 
 Every instrument in the catalog has a starter course — setup, tuning, first notes, reading
-notation, a first melody — with those exercises as its graded practice steps. The trainer
-tells you whether you hit the note; the courses tell you which note to go for and why.
+notation, a first melody — with those exercises as its graded practice steps. Twelve
+courses, 98 lessons, sheet music throughout. The trainer tells you whether you hit the
+note; the courses tell you which note to go for and why.
 
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
@@ -70,7 +71,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
 | Client | 5 of 15 screens built — catalog, course, lesson, practice take, tuner |
-| Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. One published course; no server |
+| Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
 | Server | Not started |
 
 ### Spike — what remains
@@ -123,7 +124,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [x] Sheet music: VexFlow engraving with playback (ADR-015), stage 1 of 3
 - [ ] Notation stage 2 — cursor following playback
 - [ ] Notation stage 3 — live feedback on the staff during a take
-- [ ] Starter courses for the other 11 instruments — listed, unpublished
+- [x] Starter courses for all 12 instruments — 98 lessons, generated from one skeleton
 - [ ] SVG diagram sets — every `diagram` block currently degrades to its caption
 
 **Infrastructure**
@@ -192,7 +193,7 @@ real instrument. That fills the table above and closes `AUDIO_PIPELINE.md` §9. 
 more now than it did — a course teaching beginners cannot rest on unmeasured gates, since
 a beginner cannot tell whether the app or their own ear is wrong.
 
-Walk the published course end to end in a browser. The learning layer has never been used
+Walk a course end to end in a browser. The learning layer has never been used
 by a person: the engraving, the playback, the quiz, the unlocking and the embedded take are
 all unverified beyond a typecheck and a build.
 

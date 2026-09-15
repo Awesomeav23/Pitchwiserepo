@@ -104,7 +104,10 @@ skeleton and are named honestly — *Starter course*, never *Learn guitar*.
 
 ### 4.1 The skeleton
 
-Eight lessons, identical in shape across every instrument:
+Eight lessons, identical in shape across every instrument. **All twelve courses are
+written** and generated from this skeleton by `client/src/learning/generate.ts` plus the
+per-instrument overrides in `content.ts` — the generator described in §4.4 and
+`DATA_MODEL.md` §11.9.
 
 | # | Lesson | Kind | Graded by | Varies by instrument |
 |---|---|---|---|---|
@@ -320,4 +323,4 @@ obvious mistake here.
 - [ ] Whether lesson 2 can auto-complete from tuner-mode frames instead of self-report
 - [ ] Clef and transposition values per instrument — derive from `AUDIO_PIPELINE.md` §6
       rather than restating them here
-- [ ] Whether the twelve starter courses ship at once or in tranches
+- [x] ~~Whether the twelve starter courses ship at once or in tranches~~ **All twelve at once.** The shared skeleton made the marginal cost of the eleventh course small enough that staggering them bought nothing, and a catalog advertising courses that do not exist is worse than no catalog. `courses.is_published` stays in the schema for future courses

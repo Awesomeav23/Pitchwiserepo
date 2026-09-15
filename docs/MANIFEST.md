@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete, build underway
-**Last checkpoint:** 2026-09-15 (learning layer built on seed data; unverified in a browser)
+**Last checkpoint:** 2026-09-15 (all 12 starter courses written; unverified in a browser)
 
 ---
 
@@ -34,7 +34,7 @@
 | Client: practice take (US-04, US-05) | **Built.** Count-in, metronome, piano roll, live trace, per-note results. Scoring covered by `npm run verify`; **audio path never run in a browser** |
 | Client: learning layer (US-14–US-19) | **Built on local seed data.** Catalog, course detail, lesson view, block renderer, quizzes, progress, ordered unlocking. Never used by a person |
 | Sheet music (ADR-015) | **Stage 1 built.** VexFlow engraving with playback, lazy-loaded. Cursor and live staff feedback not built |
-| Starter-course content, 12 instruments | 1 of 12 written (voice, tenor). The other 11 are listed and unpublished |
+| Starter-course content, 12 instruments | **12 of 12 written**, 98 lessons, all published. Generated from one skeleton plus per-instrument overrides (`learning/generate.ts`, `learning/content.ts`) |
 | Client: remaining 10 screens | Not started — list in `README.md` |
 | Client: 6 learning-layer screens | Not started — `LEARNING_PLATFORM.md` §8 |
 | `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
@@ -146,8 +146,8 @@ Then, in order:
    is the cheapest outstanding verification in the project.
 3. **The server**, `API_SPEC.md` §§5–8 before §15. Progress currently lives in
    `localStorage`, which LEARNING_PLATFORM §7 explicitly says it must not.
-4. ~~**One starter course, end to end, for one instrument**~~ **Written** — voice, tenor.
-   The other eleven, and the generator, wait until this one has been walked by a person.
+4. ~~**One starter course, end to end, for one instrument**~~ **All twelve written**, via
+   the generator. None has been walked by a person — that is now the outstanding gap.
 
  The spike is built and ADR-002 —
 the largest scheduled risk in REQUIREMENTS §8 — is confirmed working in Chrome.
@@ -183,3 +183,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | Learning layer built: catalog, course, lesson, quiz, progress, ordered unlocking (US-14–US-19) |
 | 2026-09-15 | ADR-015: sheet music is core, off the cut list. `score` block added; one authored string drives notation, audio and scoring |
 | 2026-09-15 | First starter course written by hand — voice, tenor, 8 lessons across 3 modules |
+| 2026-09-15 | All 12 starter courses written (98 lessons) via the seed generator; catalog grouped by family, no unpublished entries |
+| 2026-09-15 | Transposition sign convention fixed: guitar and bass were −12 against clarinet's +2. Now +12, and stated in AUDIO_PIPELINE §6 |

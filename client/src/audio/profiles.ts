@@ -6,6 +6,11 @@ import type { InstrumentProfile } from './types';
  * fMin/fMax include margin beyond the nominal playing range so a legitimately
  * sharp or flat top note is not rejected by the Stage E clamp.
  *
+ * transpositionSemitones is written pitch minus sounding pitch, per
+ * AUDIO_PIPELINE.md §6. A B flat clarinet's written C sounds B flat, so +2; a
+ * guitar's written C4 sounds C3, so +12. Both instruments sound below written
+ * pitch, so both signs point the same way.
+ *
  * PLACEHOLDER_GATE is not a measurement. Every profile ships isMeasured: false
  * and must be measured per instrument with a real microphone in a real room —
  * the dynamic range between a flute and a trumpet into the same laptop mic is
@@ -38,8 +43,8 @@ export const INSTRUMENT_PROFILES: InstrumentProfile[] = [
   p('trumpet_bb', 'Trumpet (B♭)', 'brass', 'F#3–D6', 170, 1200, 2),
   p('violin', 'Violin', 'strings', 'G3–A7', 185, 3600),
   p('cello', 'Cello', 'strings', 'C2–C6', 60, 1100),
-  p('guitar', 'Guitar (melody)', 'strings', 'E2–E6', 75, 1350, -12),
-  p('bass', 'Bass (melody)', 'strings', 'E1–G4', 38, 420, -12),
+  p('guitar', 'Guitar (melody)', 'strings', 'E2–E6', 75, 1350, 12),
+  p('bass', 'Bass (melody)', 'strings', 'E1–G4', 38, 420, 12),
   p('piano', 'Piano (melody)', 'keys', 'A0–C8', 25, 4200),
 ];
 
