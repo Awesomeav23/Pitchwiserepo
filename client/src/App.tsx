@@ -2,12 +2,14 @@ import { Catalog } from './screens/Catalog';
 import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
 import { Practice } from './screens/Practice';
+import { Scorecard } from './screens/Scorecard';
 import { Tuner } from './screens/Tuner';
 import { navigate, useRoute } from './lib/route';
 
 export default function App() {
   const route = useRoute();
-  const inCourses = route.name === 'catalog' || route.name === 'course' || route.name === 'lesson';
+  const inCourses = route.name === 'catalog' || route.name === 'course'
+    || route.name === 'lesson' || route.name === 'attempt';
 
   return (
     <>
@@ -40,6 +42,9 @@ export default function App() {
 
       {route.name === 'lesson' &&
         <LessonView key={route.id} lessonId={route.id} onBack={() => history.back()} />}
+
+      {route.name === 'attempt' &&
+        <Scorecard key={route.id} attemptId={route.id} onBack={() => history.back()} />}
 
       {/* Keyed so leaving a screen unmounts it, releasing the microphone rather
           than leaving two engines contending for it. */}

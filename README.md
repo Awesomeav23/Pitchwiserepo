@@ -13,7 +13,7 @@ note; the courses tell you which note to go for and why.
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
 measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 8 of 15 screens.
+tuner mode working — 9 of 15 screens.
 
 ---
 
@@ -70,7 +70,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | 8 of 15 screens built — catalog, course, four lesson kinds, practice take, tuner |
+| Client | 9 of 15 screens built — catalog, course, four lesson kinds, practice take, scorecard, tuner. Wired to the API |
 | Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
 | Server | **Built.** Express + Postgres, all endpoints, 55 end-to-end checks passing |
 
@@ -102,14 +102,14 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
 - [ ] Microphone device picker and permission pre-flight
 
-**Screens — 7 of 15 remaining**
+**Screens — 6 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
 - [ ] Onboarding: choose instrument or voice (US-01)
 - [ ] Exercise library (US-02)
 - [ ] Exercise detail with note preview (US-02)
 - [x] Practice take: count-in, metronome, target overlay, live trace (US-04, US-05)
-- [ ] Scorecard (US-06)
+- [x] Scorecard (US-06) — deviation chart, per-note table, addressable by URL
 - [ ] Attempt history (US-07)
 - [ ] Microphone denied or unavailable (§5.1)
 
@@ -129,16 +129,12 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 
 **Infrastructure**
 
-- [ ] Routing
 - [ ] Auth provider integration — blocked on Clerk vs Auth0 (`API_SPEC.md` §14)
-- [ ] API client and types shared with the server
+- [x] API client — one module, the only thing that fetches
 - [x] Piano-roll rendering of target against detected pitch
 - [x] `NoteSource` abstraction over the audio engine (ADR-013)
 - [x] The five seed exercises and the `buildExercise` helper (`DATA_MODEL.md` §4.2, §6.2)
-- [ ] Routing — `App.tsx` switches two screens by hand; picking a router belongs with
-      the course and lesson URLs it will carry
-- [ ] Course seed generator — skeleton plus per-instrument overrides (`DATA_MODEL.md` §11.9)
-- [ ] Starter-course content: 3 prose lessons and an SVG diagram set per instrument
+- [x] Routing — hash-based, hand-written; courses, lessons and attempts have URLs
 
 The learning layer runs entirely on local seed data with progress in `localStorage`. That
 is a stand-in, not the design: `LEARNING_PLATFORM.md` §7 requires progress to be

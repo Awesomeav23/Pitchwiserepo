@@ -112,6 +112,7 @@ function PracticeTake({
   const [profileId, setProfileId] = useState('voice_tenor');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TakeResult | null>(null);
@@ -183,7 +184,7 @@ function PracticeTake({
       ...(lessonId ? { lessonId } : {}),
       noteResults: { version: 1, results },
     })
-      .then((attempt) => onResult?.(summary, attempt))
+      .then((attempt) => { setSavedId(attempt.id); onResult?.(summary, attempt); })
       .catch((err: unknown) => { setSaveError(describeError(err)); onResult?.(summary); })
       .finally(() => setSaving(false));
   }, [engine, exercise, setPhaseBoth, onResult, profileId, durationMs, lessonId]);
@@ -201,6 +202,7 @@ function PracticeTake({
     setResult(null);
     resultsRef.current = null;
     framesRef.current = [];
+    setSavedId(null);
     setPhaseBoth('arming');
 
     try {
@@ -351,6 +353,12 @@ function PracticeTake({
       </div>
 
       {result && <Summary result={result} exercise={exercise} />}
+
+      {savedId && (
+        <p className="alert ok-alert">
+          Saved. <a className="link" href={`#/attempt/${savedId}`}>See the full scorecard</a>
+        </p>
+      )}
 
       {phase === 'done' && (
         <p className="alert warn">
