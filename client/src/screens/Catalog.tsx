@@ -1,23 +1,32 @@
-/** Course catalog — US-14. One starter course per instrument, all written. */
-import { INSTRUMENT_PROFILES } from '../audio/profiles';
-import { COURSES } from '../learning/seed';
-import { courseStats } from '../learning/progress';
-import { lessonsOf } from '../learning/types';
-import type { Course } from '../learning/types';
+/** Course catalog — US-14. Served by the API. */
+import { api } from '../api/client';
+import { useApi } from '../api/useApi';
+import type { CourseCard } from '../api/types';
+import { Loading, Failed } from '../components/Async';
 
 const FAMILY_ORDER = ['voice', 'woodwind', 'brass', 'strings', 'keys'] as const;
 const FAMILY_LABEL: Record<string, string> = {
   voice: 'Voice', woodwind: 'Woodwind', brass: 'Brass', strings: 'Strings', keys: 'Keys',
 };
 
-export function Catalog({ onOpen }: { onOpen: (course: Course) => void }) {
-  const published = COURSES.filter((c) => c.isPublished);
+export function Catalog({ onOpen }: { onOpen: (course: CourseCard) => void }) {
+  // Two requests rather than one: the catalog groups by instrument family, and
+  // a course card carries an instrument id, not a family. Joining here keeps
+  // the family out of the course payload, where it would be duplicated on
+  // every row.
+  const courses = useApi(() => api.courses(), []);
+  const instruments = useApi(() => api.instruments(), []);
+
+  if (courses.loading || instruments.loading) return <Loading what="courses" />;
+  if (courses.error) return <Failed message={courses.error} onRetry={courses.reload} />;
+  if (instruments.error) return <Failed message={instruments.error} onRetry={instruments.reload} />;
+
+  const familyOf = (instrumentId: string) =>
+    instruments.data?.find((i) => i.id === instrumentId)?.family ?? 'keys';
 
   return (
     <div className="tuner">
-      <header>
-        <h1>Pitchwise <small>courses</small></h1>
-      </header>
+      <header><h1>Pitchwise <small>courses</small></h1></header>
 
       <p className="lede">
         A starter course for every instrument. Each one covers setup, tuning, reading
@@ -26,28 +35,27 @@ export function Catalog({ onOpen }: { onOpen: (course: Course) => void }) {
       </p>
 
       {FAMILY_ORDER.map((family) => {
-        const courses = published.filter((c) => familyOf(c) === family);
-        if (courses.length === 0) return null;
+        const inFamily = (courses.data ?? []).filter((c) => familyOf(c.instrumentId) === family);
+        if (inFamily.length === 0) return null;
         return (
           <section key={family}>
             <h2 className="section-head">{FAMILY_LABEL[family]}</h2>
             <div className="cards">
-              {courses.map((c) => {
-                const stats = courseStats(c);
-                const done = stats.completed > 0;
+              {inFamily.map((c) => {
+                const done = c.progress?.completedLessons ?? 0;
                 return (
                   <button key={c.id} className="card" onClick={() => onOpen(c)}>
                     <div className="card-title">{c.title.replace(' — starter course', '')}</div>
                     <div className="card-summary">{c.summary}</div>
-                    {done && (
+                    {done > 0 && (
                       <div className="progress-bar card-progress">
-                        <div style={{ width: `${(stats.completed / stats.total) * 100}%` }} />
+                        <div style={{ width: `${(done / c.lessonCount) * 100}%` }} />
                       </div>
                     )}
                     <div className="card-meta">
-                      {done
-                        ? `${stats.completed} of ${stats.total} lessons complete`
-                        : `${stats.total} lessons · ${minutesOf(c)} min`}
+                      {done > 0
+                        ? `${done} of ${c.lessonCount} lessons complete`
+                        : `${c.lessonCount} lessons · ${c.estimatedMinutes} min`}
                     </div>
                   </button>
                 );
@@ -59,10 +67,3 @@ export function Catalog({ onOpen }: { onOpen: (course: Course) => void }) {
     </div>
   );
 }
-
-function familyOf(course: Course): string {
-  return INSTRUMENT_PROFILES.find((p) => p.id === course.instrumentId)?.family ?? 'keys';
-}
-
-const minutesOf = (course: Course): number =>
-  lessonsOf(course).reduce((sum, l) => sum + l.estimatedMinutes, 0);

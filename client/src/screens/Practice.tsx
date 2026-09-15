@@ -20,7 +20,11 @@ import { hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { INSTRUMENT_PROFILES, profileById } from '../audio/profiles';
 import { DEFAULT_CONFIG } from '../audio/types';
 import type { AnalysedFrame, InstrumentProfile } from '../audio/types';
-import { EXERCISES, exerciseBySlug } from '../exercises/seed';
+import type { ApiExercise } from '../api/types';
+import { api } from '../api/client';
+import { describeError, useApi } from '../api/useApi';
+import type { Attempt } from '../api/types';
+import { Loading, Failed } from '../components/Async';
 import { durationOf } from '../exercises/types';
 import type { Exercise } from '../exercises/types';
 import { reduceToNoteResults } from '../practice/take';
@@ -48,21 +52,72 @@ export interface PracticeProps {
    *  — a lesson teaches one exercise and letting the learner swap it mid-lesson
    *  would make the lesson's completion rule meaningless. */
   exercise?: Exercise;
-  /** Called with the summary each time a take completes. */
-  onResult?: (summary: AttemptSummary) => void;
+  /** When present, the attempt is submitted against this lesson and the server
+   *  decides whether it completes it. */
+  lessonId?: string;
+  /** Called with the summary each time a take completes, and with the stored
+   *  attempt once the server has accepted it. */
+  onResult?: (summary: AttemptSummary, attempt?: Attempt) => void;
   /** Drop the heading, for use inside a lesson that has its own. */
   embedded?: boolean;
 }
 
-export function Practice({ exercise: fixedExercise, onResult, embedded }: PracticeProps = {}) {
-  const [slug, setSlug] = useState(EXERCISES[0].slug);
+/**
+ * Standalone entry point. Resolves which exercise to practise — from the
+ * library when nobody supplied one — and hands a settled exercise to the take
+ * itself. The split exists because the take's hooks all depend on having an
+ * exercise, and a hook cannot wait for a fetch.
+ */
+export function Practice(props: PracticeProps = {}) {
+  const [slug, setSlug] = useState<string | null>(null);
+
+  // Only fetched in standalone mode; inside a lesson the exercise arrives with
+  // the lesson, which is why that response embeds it.
+  const library = useApi(
+    () => (props.exercise ? Promise.resolve([]) : api.exercises()),
+    [props.exercise],
+  );
+
+  if (props.exercise) return <PracticeTake {...props} exercise={props.exercise} library={[]} />;
+  if (library.loading) return <Loading what="the exercise library" />;
+  if (library.error || !library.data?.length) {
+    return <Failed message={library.error ?? 'No exercises found.'} onRetry={library.reload} />;
+  }
+
+  const chosen = library.data.find((e) => e.slug === slug) ?? library.data[0];
+  return (
+    <PracticeTake
+      {...props}
+      exercise={fromApi(chosen)}
+      library={library.data}
+      onSelectSlug={setSlug}
+    />
+  );
+}
+
+const fromApi = (e: ApiExercise): Exercise => ({
+  id: e.id, slug: e.slug, title: e.title, description: e.description ?? '',
+  typeId: e.typeId as Exercise['typeId'], difficulty: e.difficulty, tempoBpm: e.tempoBpm,
+  timeSignature: e.timeSignature, lowestMidi: e.lowestMidi, highestMidi: e.highestMidi,
+  noteSequence: e.noteSequence,
+});
+
+function PracticeTake({
+  exercise, lessonId, onResult, embedded, library, onSelectSlug,
+}: PracticeProps & {
+  exercise: Exercise;
+  library: ApiExercise[];
+  onSelectSlug?: (slug: string) => void;
+}) {
   const [profileId, setProfileId] = useState('voice_tenor');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TakeResult | null>(null);
   const [countLabel, setCountLabel] = useState('');
 
-  const exercise = fixedExercise ?? exerciseBySlug(slug);
+  const fixedExercise = lessonId !== undefined || library.length === 0 ? exercise : undefined;
   const profile = profileById(profileId);
   const durationMs = durationOf(exercise.noteSequence);
 
@@ -106,10 +161,32 @@ export function Practice({ exercise: fixedExercise, onResult, embedded }: Practi
     resultsRef.current = results;
     setResult({ results, summary });
     setPhaseBoth('done');
-    onResult?.(summary);
     metronomeRef.current?.stop();
     void engine.stop();
-  }, [engine, exercise, setPhaseBoth, onResult]);
+
+    // The client computes a summary to render immediately, but the server
+    // recomputes it from noteResults and its answer is the one that is stored
+    // (API_SPEC §8). The id is generated here so a retry after a timeout cannot
+    // duplicate a take the user performed once.
+    if (!exercise.id) { onResult?.(summary); return; }
+    setSaving(true);
+    setSaveError(null);
+    api.postAttempt({
+      id: crypto.randomUUID(),
+      exerciseId: exercise.id,
+      instrumentId: profileId,
+      startedAt: new Date(Date.now() - durationMs).toISOString(),
+      durationMs: Math.round(durationMs),
+      engineVersion: engine.version,
+      inputSource: engine.inputSource,
+      rhythmScored: false,
+      ...(lessonId ? { lessonId } : {}),
+      noteResults: { version: 1, results },
+    })
+      .then((attempt) => onResult?.(summary, attempt))
+      .catch((err: unknown) => { setSaveError(describeError(err)); onResult?.(summary); })
+      .finally(() => setSaving(false));
+  }, [engine, exercise, setPhaseBoth, onResult, profileId, durationMs, lessonId]);
 
   const abort = useCallback(() => {
     metronomeRef.current?.stop();
@@ -208,16 +285,16 @@ export function Practice({ exercise: fixedExercise, onResult, embedded }: Practi
       {!embedded && (
         <header>
           <h1>Pitchwise <small>practice</small></h1>
-          <span className={`pill ${busy ? 'ok' : ''}`}>{phaseLabel(phase)}</span>
+            <span className={`pill ${busy ? 'ok' : ''}`}>{saving ? 'saving…' : phaseLabel(phase)}</span>
         </header>
       )}
 
       <section className="controls">
-        {!fixedExercise && (
+        {!fixedExercise && onSelectSlug && (
           <label>
             Exercise
-            <select value={slug} onChange={(e) => setSlug(e.target.value)} disabled={busy}>
-              {EXERCISES.map((e) => (
+            <select value={exercise.slug} onChange={(e) => onSelectSlug(e.target.value)} disabled={busy}>
+              {library.map((e) => (
                 <option key={e.slug} value={e.slug}>
                   {e.title} · {e.tempoBpm} bpm · level {e.difficulty}
                 </option>
@@ -240,12 +317,17 @@ export function Practice({ exercise: fixedExercise, onResult, embedded }: Practi
           : <button className="primary" onClick={() => void begin()}>
               {phase === 'done' ? 'Again' : 'Start take'}
             </button>}
-        {embedded && <span className="stat inline">{phaseLabel(phase)}</span>}
+        {embedded && <span className="stat inline">{saving ? 'saving…' : phaseLabel(phase)}</span>}
       </section>
 
       {!embedded && <p className="stat">{exercise.description}</p>}
 
       {error && <p className="alert error">{error}</p>}
+      {saveError && (
+        <p className="alert warn">
+          Scored, but not saved: {saveError} This take will not appear in your history.
+        </p>
+      )}
 
       {!profile.isMeasured && (
         <p className="alert warn">

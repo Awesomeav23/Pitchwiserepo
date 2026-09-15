@@ -18,6 +18,9 @@ export interface NoteSequence {
 export type ExerciseTypeId = 'scale' | 'interval' | 'warmup' | 'arpeggio';
 
 export interface Exercise {
+  /** The server's id. Absent for exercises built locally, which cannot be
+   *  submitted as attempts — an attempt has to name a row that exists. */
+  id?: string;
   slug: string;
   title: string;
   description: string;

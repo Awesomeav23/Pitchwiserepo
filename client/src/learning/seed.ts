@@ -2,6 +2,12 @@
  * The course catalog: one starter course per instrument in the profile list,
  * all published.
  *
+ * **Not loaded by the running app any more.** Since the server exists, the
+ * client fetches courses from the API; this module is the content source the
+ * server's seed script imports at build time (DATA_MODEL §11.9). It lives here
+ * rather than in the server because the generator shares the exercise parser
+ * with the client. A shared workspace is the proper home for both.
+ *
  * Every course is generated from the shared eight-lesson skeleton
  * (LEARNING_PLATFORM.md §4.1) plus the per-instrument override in content.ts —
  * the seed generator described in DATA_MODEL.md §11.9. Writing twelve courses

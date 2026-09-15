@@ -1,64 +1,50 @@
-/**
- * Screen switch. Still not a router — routing is its own outstanding item, and
- * picking one belongs with the shareable course and lesson URLs it will have to
- * carry. Until then the learning path is a small state machine.
- */
-import { useState } from 'react';
 import { Catalog } from './screens/Catalog';
 import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
 import { Practice } from './screens/Practice';
 import { Tuner } from './screens/Tuner';
-import type { Course, Lesson } from './learning/types';
-
-type View =
-  | { name: 'catalog' }
-  | { name: 'course'; course: Course }
-  | { name: 'lesson'; course: Course; lesson: Lesson }
-  | { name: 'practice' }
-  | { name: 'tuner' };
+import { navigate, useRoute } from './lib/route';
 
 export default function App() {
-  const [view, setView] = useState<View>({ name: 'catalog' });
-  const inCourses = view.name === 'catalog' || view.name === 'course' || view.name === 'lesson';
+  const route = useRoute();
+  const inCourses = route.name === 'catalog' || route.name === 'course' || route.name === 'lesson';
 
   return (
     <>
       <nav className="nav">
         <div className="seg">
-          <button className={inCourses ? 'on' : ''} onClick={() => setView({ name: 'catalog' })}>
+          <button className={inCourses ? 'on' : ''} onClick={() => navigate({ name: 'catalog' })}>
             Learn
           </button>
-          <button className={view.name === 'practice' ? 'on' : ''} onClick={() => setView({ name: 'practice' })}>
+          <button className={route.name === 'practice' ? 'on' : ''}
+            onClick={() => navigate({ name: 'practice' })}>
             Practice
           </button>
-          <button className={view.name === 'tuner' ? 'on' : ''} onClick={() => setView({ name: 'tuner' })}>
+          <button className={route.name === 'tuner' ? 'on' : ''}
+            onClick={() => navigate({ name: 'tuner' })}>
             Tuner
           </button>
         </div>
       </nav>
 
-      {view.name === 'catalog' &&
-        <Catalog onOpen={(course) => setView({ name: 'course', course })} />}
+      {route.name === 'catalog' &&
+        <Catalog onOpen={(course) => navigate({ name: 'course', slug: course.slug })} />}
 
-      {view.name === 'course' &&
+      {route.name === 'course' &&
         <CourseView
-          course={view.course}
-          onOpenLesson={(lesson) => setView({ name: 'lesson', course: view.course, lesson })}
-          onBack={() => setView({ name: 'catalog' })}
+          key={route.slug}
+          slug={route.slug}
+          onOpenLesson={(lesson) => navigate({ name: 'lesson', id: lesson.id })}
+          onBack={() => navigate({ name: 'catalog' })}
         />}
 
-      {view.name === 'lesson' &&
-        <LessonView
-          key={view.lesson.id}
-          lesson={view.lesson}
-          onBack={() => setView({ name: 'course', course: view.course })}
-        />}
+      {route.name === 'lesson' &&
+        <LessonView key={route.id} lessonId={route.id} onBack={() => history.back()} />}
 
       {/* Keyed so leaving a screen unmounts it, releasing the microphone rather
           than leaving two engines contending for it. */}
-      {view.name === 'practice' && <Practice key="practice" />}
-      {view.name === 'tuner' && <Tuner key="tuner" />}
+      {route.name === 'practice' && <Practice key="practice" />}
+      {route.name === 'tuner' && <Tuner key="tuner" />}
     </>
   );
 }
