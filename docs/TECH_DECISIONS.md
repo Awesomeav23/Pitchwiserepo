@@ -3,7 +3,7 @@
 **Project:** Pitchwise
 **Format:** Architecture Decision Records — Context → Decision → Consequences
 **Status:** Draft v1.0
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-15
 
 Each record is numbered and dated. Records are append-only: if a decision is reversed,
 mark the original **Superseded** and write a new record rather than editing history.
@@ -304,6 +304,101 @@ the JSON shape. No MIDI parsing in v1. Full detail in `DATA_MODEL.md` §4.2 and 
 
 ---
 
+## ADR-012 — A learning layer above the exercise library, not a second product
+
+**Status:** Accepted · 2026-09-15
+
+**Context**
+The v1 library is a flat list of five exercises with no ordering and no instruction around
+them. A user who cannot already read music and does not know what an interval drill is for
+has no route in. Adding structured teaching content is the change requested, and there
+were two ways to take it: build a separate learning product beside the trainer, or model
+courses as an ordered layer whose practice steps point at the exercises that already
+exist.
+
+A separate product would duplicate attempts, scoring, instrument profiles and history, and
+would immediately raise the question of which of the two a score belongs to.
+
+**Decision**
+Courses, modules and lessons are added as a layer **above** `exercises`. A lesson of kind
+`exercise` holds a foreign key to an existing exercise row. Attempts, `note_results`,
+scoring, bands and instrument profiles are unchanged. Content lessons are text, diagrams
+and Tone.js-synthesized reference audio; no video. Every instrument in the catalog gets one
+starter course built from a shared eight-lesson skeleton. Full model in
+`LEARNING_PLATFORM.md`.
+
+**Consequences**
+- The change is additive to the schema. No existing table or JSONB shape is modified
+  except one new column on `attempts` (ADR-013).
+- The practice-take screen is reused with lesson chrome rather than rebuilt, so the
+  audio work already done carries straight into the new surface.
+- Exercises gain a reason to exist in a particular order, which is what the flat library
+  lacked.
+- Progress must be evaluated server-side, which makes the backend a harder dependency
+  than it already was. Six screens depended on endpoints that do not exist; now more do.
+- Breadth was chosen over depth: twelve shallow starter courses rather than one complete
+  curriculum. Accepted risk — a shallow course teaches little, and the mitigation is
+  naming (starter course, never "learn guitar") plus a shared skeleton so the twelve do
+  not each need bespoke authoring.
+- Scope grows materially. Six new screens on top of eight already outstanding, with one
+  screen built. This is no longer a five-week project and the timeline constraint in
+  `REQUIREMENTS.md` §6 is superseded by this decision.
+- Choosing text and SVG over video keeps content at zero recurring cost, consistent with
+  the free-tier budget constraint.
+- Trade-off accepted: no video means technique instruction is weaker than a video course.
+  Technique is ungradable here regardless, so the gap is in teaching, not assessment.
+
+---
+
+## ADR-013 — A `NoteSource` abstraction now; Web MIDI deferred
+
+**Status:** Accepted · 2026-09-15
+
+**Context**
+Teaching piano and guitar means teaching chords, and the engine cannot detect them.
+Real-time polyphonic pitch detection from audio remains an open research problem
+(`REQUIREMENTS.md` §2.2) and no amount of tuning YIN changes that.
+
+The Web MIDI API sidesteps it entirely: a digital piano or MIDI controller over USB
+reports exact note-on and note-off events, polyphonic, with velocity, and with no DSP at
+all. It costs nothing in software. It does require hardware to develop against, a second
+scoring path, and a device-permission surface — real work, on a project that has one
+screen built and no server.
+
+Building it now would delay the learning layer for a capability no lesson yet needs.
+Building it later without preparing for it would mean threading a second input type
+through the engine, the practice screen, the scoring layer and the schema after all four
+have hardened around the assumption of one.
+
+**Decision**
+Introduce a `NoteSource` abstraction in the client audio layer now, with exactly one
+implementation: the existing YIN audio engine. A `MidiSource` is **not** built. The
+abstraction defines the boundary the scoring layer consumes, so a second source can be
+added without changing its callers. `attempts` gains an `input_source` column, written as
+`audio` for every row today.
+
+Audio analysis remains monophonic. The locked scope constant in `MANIFEST.md` is amended
+in wording only, from *monophonic only* to *monophonic audio analysis* — the ceiling on
+what the detector can do is unchanged, and this decision does not raise it.
+
+**Consequences**
+- Zero cost today: no hardware purchase, no permission flow, no second scoring path.
+- The seam is placed while there is one implementation and one caller, which is the
+  cheapest moment to place it.
+- `input_source` on `attempts` means a future MIDI attempt is distinguishable from an
+  audio one without a migration. Mixing them silently would make score history
+  meaningless, since a MIDI note is exact and a sung note is not.
+- Chord and two-hand lessons ship taught but ungraded, closing with a self-reported
+  drill and a `limitation` callout. Honest, and it is the same content either way.
+- Risk of an abstraction designed against a single implementation being wrong for the
+  second: the two sources differ fundamentally — audio is a continuous stream of cents
+  estimates, MIDI is discrete events. The abstraction must not assume frames. If it turns
+  out wrong, it is client-side code with no persisted shape depending on it, and the cost
+  of correcting it is bounded.
+- Trade-off accepted: users with a MIDI keyboard get no benefit from it in this release.
+
+---
+
 ## Decision Index
 
 | ID | Decision | Status |
@@ -319,3 +414,5 @@ the JSON shape. No MIDI parsing in v1. Full detail in `DATA_MODEL.md` §4.2 and 
 | ADR-009 | Node / Express backend | Accepted |
 | ADR-010 | Per-instrument configuration profiles | Accepted |
 | ADR-011 | Hand-authored JSON exercises, no MIDI import | Accepted |
+| ADR-012 | Learning layer above the exercise library | Accepted |
+| ADR-013 | `NoteSource` abstraction, Web MIDI deferred | Accepted |

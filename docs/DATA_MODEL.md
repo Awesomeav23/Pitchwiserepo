@@ -57,6 +57,10 @@ Related: `TECH_DECISIONS.md` ADR-005 (Postgres with JSONB), ADR-010 (instrument 
 | `exercises` | ~5 in v1 | Target note sequences |
 | `attempts` | grows | One per recorded take |
 
+The **learning layer** — `courses`, `modules`, `lessons`, `user_course_enrollment`,
+`user_lesson_progress` — sits above these and is specified in §11. It is additive: the
+only change to the tables above is one column on `attempts` (§11.7).
+
 ---
 
 ## 3. Schema
@@ -494,3 +498,246 @@ oversight.
 - [ ] Rhythm-vs-pitch score weighting — deferred until rhythm scoring is built
 - [ ] Gate thresholds per instrument — all `[TBM]` in `AUDIO_PIPELINE.md` §6; flip
       `is_measured` as each is measured
+
+---
+
+## 11. Learning Layer Schema
+
+Added by **ADR-012**. Model and rationale in `LEARNING_PLATFORM.md`; endpoints in
+`API_SPEC.md` §15. Nothing in §§3–6 changes except one new column on `attempts` (§11.7).
+
+```
+   courses ──N── modules ──N── lessons ──0..1── exercises   (existing)
+      │                            │
+      │ N                          │ N
+   user_course_enrollment    user_lesson_progress ──0..1── attempts  (existing)
+      │ 1                          │ 1
+      └──────── users ─────────────┘
+```
+
+### 11.1 `courses`
+
+One starter course per instrument, per `LEARNING_PLATFORM.md` §4. `instrument_id` rather
+than a family, because transposition and clef differ per instrument and the course is
+generated from them.
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK, default `gen_random_uuid()` | |
+| `slug` | `text` | NOT NULL, UNIQUE | `guitar-starter` |
+| `title` | `text` | NOT NULL | "Guitar — starter course" |
+| `summary` | `text` | | One or two sentences for the catalog card |
+| `instrument_id` | `text` | FK → `instruments(id)` | |
+| `level` | `smallint` | NOT NULL, CHECK 1–5 | Starter courses are 1 |
+| `is_published` | `boolean` | NOT NULL, default false | Unpublished courses are invisible to non-authors |
+| `sort_order` | `smallint` | NOT NULL, default 0 | |
+| `created_at` | `timestamptz` | NOT NULL, default `now()` | |
+
+```sql
+CREATE TABLE courses (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug          text NOT NULL UNIQUE,
+  title         text NOT NULL,
+  summary       text,
+  instrument_id text NOT NULL REFERENCES instruments(id),
+  level         smallint NOT NULL CHECK (level BETWEEN 1 AND 5),
+  is_published  boolean NOT NULL DEFAULT false,
+  sort_order    smallint NOT NULL DEFAULT 0,
+  created_at    timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_courses_instrument ON courses (instrument_id) WHERE is_published;
+```
+
+`is_published` exists so the twelve starter courses can land in tranches without a feature
+flag in application code — open item in `LEARNING_PLATFORM.md` §10.
+
+### 11.2 `modules`
+
+| Column | Type | Constraints |
+|---|---|---|
+| `id` | `uuid` | PK, default `gen_random_uuid()` |
+| `course_id` | `uuid` | FK → `courses(id)` ON DELETE CASCADE |
+| `title` | `text` | NOT NULL |
+| `sort_order` | `smallint` | NOT NULL |
+
+```sql
+CREATE TABLE modules (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id  uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  sort_order smallint NOT NULL,
+  UNIQUE (course_id, sort_order)
+);
+```
+
+The unique constraint on `(course_id, sort_order)` is what makes ordering trustworthy.
+Sequencing is the entire point of this layer; duplicate positions would make "the next
+lesson" ambiguous, and ambiguity resolved in application code is a bug waiting.
+
+An eight-lesson starter course may hold a single module. The level exists so a deeper
+course later does not need a schema change.
+
+### 11.3 `lessons`
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `uuid` | PK, default `gen_random_uuid()` | |
+| `module_id` | `uuid` | FK → `modules(id)` ON DELETE CASCADE | |
+| `slug` | `text` | NOT NULL, UNIQUE | `guitar-starter-first-three-notes` |
+| `title` | `text` | NOT NULL | |
+| `kind` | `text` | NOT NULL, CHECK in 4 values | `content`, `exercise`, `quiz`, `drill` |
+| `sort_order` | `smallint` | NOT NULL | |
+| `body` | `jsonb` | | Blocks — `LEARNING_PLATFORM.md` §5 |
+| `quiz` | `jsonb` | | Questions — `LEARNING_PLATFORM.md` §6 |
+| `exercise_id` | `uuid` | FK → `exercises(id)` | The reuse point. NULL unless `kind = 'exercise'` |
+| `completion_rule` | `jsonb` | NOT NULL | §11.5 |
+| `estimated_minutes` | `smallint` | | Display only |
+
+```sql
+CREATE TABLE lessons (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  module_id         uuid NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+  slug              text NOT NULL UNIQUE,
+  title             text NOT NULL,
+  kind              text NOT NULL CHECK (kind IN ('content','exercise','quiz','drill')),
+  sort_order        smallint NOT NULL,
+  body              jsonb,
+  quiz              jsonb,
+  exercise_id       uuid REFERENCES exercises(id),
+  completion_rule   jsonb NOT NULL,
+  estimated_minutes smallint,
+  UNIQUE (module_id, sort_order),
+  CONSTRAINT chk_lesson_payload CHECK (
+    (kind = 'exercise' AND exercise_id IS NOT NULL) OR
+    (kind = 'quiz'     AND quiz IS NOT NULL)        OR
+    (kind IN ('content','drill') AND body IS NOT NULL)
+  )
+);
+
+CREATE INDEX idx_lessons_module ON lessons (module_id, sort_order);
+CREATE INDEX idx_lessons_exercise ON lessons (exercise_id) WHERE exercise_id IS NOT NULL;
+```
+
+`chk_lesson_payload` puts the kind-to-payload rule in the database. Without it a `quiz`
+lesson with no questions is insertable and fails only when a user opens it.
+
+**`exercise_id` has no `ON DELETE CASCADE` on purpose.** Deleting an exercise that a
+lesson teaches should fail loudly, not silently empty a course.
+
+### 11.4 `user_course_enrollment`
+
+| Column | Type | Constraints |
+|---|---|---|
+| `user_id` | `uuid` | FK → `users(id)` ON DELETE CASCADE |
+| `course_id` | `uuid` | FK → `courses(id)` ON DELETE CASCADE |
+| `started_at` | `timestamptz` | NOT NULL, default `now()` |
+| `last_active_at` | `timestamptz` | NOT NULL, default `now()` |
+
+```sql
+CREATE TABLE user_course_enrollment (
+  user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  course_id      uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  started_at     timestamptz NOT NULL DEFAULT now(),
+  last_active_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, course_id)
+);
+```
+
+There is no `current_lesson_id`. The next lesson is derivable from progress plus
+`sort_order`, and a stored pointer would be a second source of truth that can disagree
+with the first.
+
+### 11.5 `user_lesson_progress`
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `user_id` | `uuid` | FK → `users(id)` ON DELETE CASCADE | |
+| `lesson_id` | `uuid` | FK → `lessons(id)` ON DELETE CASCADE | |
+| `state` | `text` | NOT NULL, CHECK `in_progress` / `complete` | Absence of a row is `not_started` |
+| `best_attempt_id` | `uuid` | FK → `attempts(id)` ON DELETE SET NULL | The attempt that satisfied the rule |
+| `quiz_fraction` | `numeric(4,3)` | CHECK 0–1 | Best quiz result |
+| `completed_at` | `timestamptz` | | NULL while `in_progress` |
+| `updated_at` | `timestamptz` | NOT NULL, default `now()` | |
+
+```sql
+CREATE TABLE user_lesson_progress (
+  user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lesson_id       uuid NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  state           text NOT NULL CHECK (state IN ('in_progress','complete')),
+  best_attempt_id uuid REFERENCES attempts(id) ON DELETE SET NULL,
+  quiz_fraction   numeric(4,3) CHECK (quiz_fraction BETWEEN 0 AND 1),
+  completed_at    timestamptz,
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (user_id, lesson_id),
+  CONSTRAINT chk_completed_at CHECK (
+    (state = 'complete' AND completed_at IS NOT NULL) OR
+    (state = 'in_progress' AND completed_at IS NULL)
+  )
+);
+
+CREATE INDEX idx_progress_user ON user_lesson_progress (user_id, state);
+```
+
+**No row means not started.** A three-state enum would need a row written the moment a
+course is listed, for every lesson the user has not opened.
+
+`best_attempt_id` is `ON DELETE SET NULL`, not cascade: a user deleting an attempt
+(`API_SPEC.md` §8) must not silently revoke a completed lesson. Completion is sticky per
+`LEARNING_PLATFORM.md` §7, and the row survives with a null pointer.
+
+### 11.6 `completion_rule` shape
+
+```jsonc
+{ "kind": "read" }
+{ "kind": "attempt_any" }
+{ "kind": "attempt_score", "minScore": 70 }
+{ "kind": "quiz_pass", "minFraction": 0.8 }
+{ "kind": "self_report" }
+```
+
+Evaluated **server-side only**. `attempt_score` reads `attempts.overall_score` for an
+attempt on the lesson's `exercise_id` by that user. The client posts an attempt; it never
+posts a completion.
+
+`minScore` is provisional at 70 and unvalidated — open item in `LEARNING_PLATFORM.md` §10.
+
+### 11.7 Change to `attempts`
+
+Added by **ADR-013**. One column:
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| `input_source` | `text` | NOT NULL, default `'audio'`, CHECK `audio` / `midi` | How the notes were captured |
+
+```sql
+ALTER TABLE attempts
+  ADD COLUMN input_source text NOT NULL DEFAULT 'audio'
+  CHECK (input_source IN ('audio','midi'));
+```
+
+Every row is `audio` today; no `MidiSource` is built. The column exists now because a MIDI
+note is exact and a detected note is not — mixing them in one score history without a
+discriminator would make progress graphs meaningless in exactly the way `engine_version`
+already guards against (§3.6).
+
+### 11.8 Migration order
+
+Extends §8. Foreign keys dictate the sequence; `attempts` must precede
+`user_lesson_progress` for `best_attempt_id`.
+
+7. `courses` *(seed after `instruments`, one per instrument)*
+8. `modules`
+9. `lessons` *(requires `exercises` from step 5)*
+10. `user_course_enrollment`
+11. `user_lesson_progress` *(requires `attempts` from step 6)*
+
+Step 6a: the `ALTER TABLE attempts` in §11.7, or fold the column into the original
+`CREATE TABLE` if the schema has not yet been applied anywhere.
+
+### 11.9 Seed data
+
+Courses, modules and lessons are emitted by a build-time generator from the skeleton in
+`LEARNING_PLATFORM.md` §4.1 plus a per-instrument override file — the same pattern as
+`buildExercise` (§4.2), and the same reasoning as ADR-011. The generator also emits the
+transposed exercise variants that lessons 3, 5, 6 and 7 point at.

@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise
 **Status:** Draft v1.0
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-15
 
 The HTTP contract between the React client and the Node/Express backend (ADR-009).
 
@@ -481,3 +481,222 @@ Listed so their absence is legible as a decision rather than an oversight.
       has more than five entries
 - [ ] Rhythm scoring changes the score blend (`DATA_MODEL.md` §5.1). `rhythmScored` is
       already in the payload, so enabling it needs no shape change
+
+---
+
+## 15. Courses, Lessons and Progress
+
+Added by **ADR-012**. Model in `LEARNING_PLATFORM.md`; schema in `DATA_MODEL.md` §11.
+
+Content is read-only, like exercises — courses are seeded by a build-time generator
+(`DATA_MODEL.md` §11.9), not authored through the API. The only writes are enrollment,
+quiz submission, and lesson completion for the two self-reported kinds.
+
+**Progress is computed server-side.** For `attempt_score` and `quiz_pass` lessons the
+client has no completion endpoint at all; it posts an attempt or a quiz submission and the
+server decides. A client able to declare its own completion makes progress advisory.
+
+### 15.1 `GET /api/v1/courses`
+
+| Query | Type | Notes |
+|---|---|---|
+| `instrument` | instrument id | Courses for that instrument |
+| `mine` | boolean | Only courses for the user's `user_instruments` |
+| `limit` | 1–100, default 50 | |
+| `cursor` | opaque | §10 |
+
+```jsonc
+{
+  "items": [
+    {
+      "id": "9a2c...",
+      "slug": "guitar-starter",
+      "title": "Guitar — starter course",
+      "summary": "Hold it, tune it, and play your first melody.",
+      "instrumentId": "guitar",
+      "level": 1,
+      "lessonCount": 9,
+      "estimatedMinutes": 75,
+      "progress": { "completedLessons": 3, "state": "in_progress" }
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+Unpublished courses (`is_published = false`) are omitted entirely. `progress` is `null`
+when the user is not enrolled.
+
+`lessonCount` and `estimatedMinutes` are aggregated per request rather than denormalized.
+Twelve courses of nine lessons is not a query worth a summary column; revisit if the
+catalog grows past a few hundred lessons, not before.
+
+### 15.2 `GET /api/v1/courses/:idOrSlug`
+
+The full outline: modules in order, lessons in order, and this user's progress on each.
+One request renders the whole course-detail screen.
+
+```jsonc
+{
+  "id": "9a2c...",
+  "slug": "guitar-starter",
+  "title": "Guitar — starter course",
+  "instrumentId": "guitar",
+  "enrolled": true,
+  "nextLessonId": "4f81...",
+  "modules": [
+    {
+      "id": "1b0e...",
+      "title": "Getting started",
+      "lessons": [
+        {
+          "id": "2c93...",
+          "slug": "guitar-starter-meet-your-instrument",
+          "title": "Meet your instrument",
+          "kind": "content",
+          "estimatedMinutes": 8,
+          "completionRule": { "kind": "read" },
+          "locked": false,
+          "progress": { "state": "complete", "completedAt": "2026-09-14T09:12:00.000Z" }
+        },
+        {
+          "id": "4f81...",
+          "slug": "guitar-starter-first-three-notes",
+          "title": "Your first three notes",
+          "kind": "exercise",
+          "exerciseId": "3d1f...",
+          "completionRule": { "kind": "attempt_score", "minScore": 70 },
+          "locked": false,
+          "progress": null
+        }
+      ]
+    }
+  ]
+}
+```
+
+Lesson **bodies are omitted here** — blocks and quiz questions are the largest fields and
+the outline screen renders none of them. Fetch one lesson at a time (§15.3).
+
+`locked` is computed, not stored: a lesson is locked when any earlier lesson in the course
+is incomplete. `nextLessonId` is the first incomplete lesson, derived the same way — which
+is why `user_course_enrollment` stores no pointer (`DATA_MODEL.md` §11.4).
+
+### 15.3 `GET /api/v1/lessons/:idOrSlug`
+
+One lesson with its payload. Returns `423 Locked` with error code `lesson_locked` if an
+earlier lesson in the course is incomplete.
+
+For `kind: 'content'` and `'drill'`, `body` is the block array
+(`LEARNING_PLATFORM.md` §5). For `kind: 'exercise'`, the response embeds the full exercise
+record including `noteSequence`, so the practice screen needs no second request. For
+`kind: 'quiz'`, see below.
+
+### 15.4 Quiz questions omit their answers
+
+A quiz lesson returns questions with `answerIndex` and `explain` **stripped**:
+
+```jsonc
+{
+  "kind": "quiz",
+  "quiz": {
+    "version": 1,
+    "passFraction": 0.8,
+    "questions": [
+      {
+        "id": "q1",
+        "prompt": "Which note is this?",
+        "kind": "choice",
+        "diagram": "staff-treble-c4",
+        "choices": ["C4", "E4", "G4", "A4"]
+      }
+    ]
+  }
+}
+```
+
+Shipping `answerIndex` to the client would make the quiz decorative — anyone reading the
+network tab has the key. The stripping happens in the serializer, not the query, and it is
+the one place in this API where a response is a deliberate subset of a stored JSONB
+document.
+
+### 15.5 `POST /api/v1/lessons/:id/quiz`
+
+```jsonc
+{ "answers": [ { "questionId": "q1", "choiceIndex": 0 } ] }
+```
+
+Response grades every question and returns the explanations that were withheld:
+
+```jsonc
+{
+  "fraction": 0.8,
+  "passed": true,
+  "results": [
+    { "questionId": "q1", "correct": true, "answerIndex": 0,
+      "explain": "Middle C sits on the first ledger line below the treble staff." }
+  ],
+  "progress": { "state": "complete", "completedAt": "2026-09-15T10:04:11.000Z" }
+}
+```
+
+Grading is server-side against the stored `quiz` JSONB. `quiz_fraction` on
+`user_lesson_progress` keeps the **best** result; resubmission is allowed and a worse
+score does not overwrite a better one, nor un-complete the lesson.
+
+Unanswered questions are graded incorrect rather than rejected. A partial submission is a
+failed attempt, not a validation error.
+
+### 15.6 `POST /api/v1/lessons/:id/complete`
+
+Valid **only** where `completion_rule.kind` is `read` or `self_report`. Any other kind
+returns `422` with code `completion_not_self_reportable`.
+
+This is the narrow, deliberate exception to server-evaluated progress: there is no signal
+for "the user read this" or "the user practised their chord" other than the user saying
+so, and `LEARNING_PLATFORM.md` §2 requires those lessons be honest about not being graded.
+
+Idempotent. Completing an already-complete lesson returns the existing row unchanged.
+
+### 15.7 `POST /api/v1/courses/:id/enroll`
+
+Creates the `user_course_enrollment` row. Idempotent — re-enrolling returns the existing
+row and does not reset progress. There is no unenroll in v1; deleting progress a user
+worked for is not a feature worth building by default.
+
+### 15.8 Change to `POST /api/v1/attempts`
+
+One new optional field, and one new required one:
+
+| Field | Type | Notes |
+|---|---|---|
+| `lessonId` | uuid, optional | When the take was made inside a lesson |
+| `inputSource` | `audio` \| `midi` | **Required.** `audio` for every client today (ADR-013) |
+
+When `lessonId` is present the server validates that the lesson's `exercise_id` matches
+the attempt's `exerciseId`, evaluates the lesson's `completion_rule`, and returns the
+resulting progress alongside the attempt:
+
+```jsonc
+{
+  "id": "b7c3...",
+  "overallScore": 82,
+  "lessonProgress": { "state": "complete", "completedAt": "2026-09-15T10:22:41.000Z" }
+}
+```
+
+A mismatch between `lessonId` and `exerciseId` is `422` `lesson_exercise_mismatch`, not a
+silent ignore — it means the client sent a take from a different exercise than the lesson
+it claims.
+
+Attempts without a `lessonId` are unchanged and still valid: the exercise library and
+tuner mode both exist outside any course.
+
+### 15.9 Not in this layer
+
+| Item | Why |
+|---|---|
+| Course authoring endpoints | Seeded by generator, ADR-011 / `DATA_MODEL.md` §11.9 |
+| Unenrolling, resetting progress | §15.7 |
+| Teacher assignment of courses | US-13, post-MVP |
+| Free-text quiz answers | `LEARNING_PLATFORM.md` §6 |

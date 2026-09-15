@@ -2,24 +2,25 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete, build underway
-**Last checkpoint:** 2026-09-13 (spike built; client scaffolded)
+**Last checkpoint:** 2026-09-15 (learning layer specified — ADR-012, ADR-013)
 
 ---
 
 ## Progress
 
-**5 / 6 documents complete (83%)**
+**7 / 7 documents complete (100%)**
 
 ## File Status
 
 | # | File | Phase | Status | Notes |
 |---|---|---|---|---|
-| 1 | `docs/REQUIREMENTS.md` | 1 | Complete | 3 open questions in §10 |
-| 2 | `docs/TECH_DECISIONS.md` | 1 | Complete | 10 ADRs, all Accepted |
+| 1 | `docs/REQUIREMENTS.md` | 1 | Complete | 3 open questions in §10. §4.3 adds US-14–US-19 |
+| 2 | `docs/TECH_DECISIONS.md` | 1 | Complete | 13 ADRs, all Accepted |
 | 3 | `docs/AUDIO_PIPELINE.md` | 1 | Complete — pending measurement | Spike is built and partly run. `[TBM]` fields needing hardware are still empty; findings so far in `spike/RESULTS.md` |
-| 4 | `docs/DATA_MODEL.md` | 2 | Complete | Resolves open question 1; adds ADR-011 |
-| 5 | `docs/API_SPEC.md` | 2 | Complete | 4 open items in §14; none block implementation |
+| 4 | `docs/DATA_MODEL.md` | 2 | Complete | Resolves open question 1 (ADR-011). §11 added for the learning layer |
+| 5 | `docs/API_SPEC.md` | 2 | Complete | 4 open items in §14. §15 added for courses and progress |
 | 6 | `docs/MANIFEST.md` | 2 | This file | Updated each checkpoint |
+| 7 | `docs/LEARNING_PLATFORM.md` | 3 | Complete | Courses, lessons, progress. Adds ADR-012 and ADR-013 |
 
 ## Phase 3 — Pre-code, not documents
 
@@ -31,7 +32,11 @@
 | Repo init, .gitignore, README skeleton | Complete — remote `Awesomeav23/Pitchwiserepo`, pushed |
 | Client scaffold + audio engine | **Complete.** Vite + React + TypeScript; Stages A–G in an AudioWorklet using Pitchy; tuner mode (US-08) |
 | Client: remaining 8 screens | Not started — list in `README.md` |
-| Server | Not started — contract in `API_SPEC.md` |
+| Client: 6 learning-layer screens | Not started — `LEARNING_PLATFORM.md` §8 |
+| `NoteSource` abstraction (ADR-013) | Not started — refactor of the existing engine, one implementation |
+| Course seed generator | Not started — `DATA_MODEL.md` §11.9 |
+| Starter-course content, 12 instruments | Not started — 3 prose lessons + a diagram set each |
+| Server | Not started — contract in `API_SPEC.md`, now including §15 |
 
 ### Spike status against `AUDIO_PIPELINE.md` §9
 
@@ -68,11 +73,18 @@ Do not change these without writing a superseding ADR.
 | Median window | 5 frames | AUDIO_PIPELINE §Stage F |
 | Latency target | < 50 ms | REQUIREMENTS §5.2 |
 | Scoring unit | cents | AUDIO_PIPELINE §Stage G |
-| Scope | monophonic only | REQUIREMENTS §2.2 |
+| Scope | monophonic **audio analysis** | REQUIREMENTS §2.2, amended by ADR-013 |
 | Pitch storage | MIDI note number, not Hz | DATA_MODEL §1 |
 | Timing storage | milliseconds, not ticks/beats | DATA_MODEL §1 |
 | note_sequence schema | version 1 | DATA_MODEL §4 |
 | note_results schema | version 1 | DATA_MODEL §5 |
+| lesson block schema | version 1 | LEARNING_PLATFORM §5 |
+| quiz schema | version 1 | LEARNING_PLATFORM §6 |
+
+**On the scope constant.** ADR-013 amends its wording, not its ceiling. Audio analysis is
+monophonic and stays monophonic; the word *audio* was added because a `NoteSource`
+abstraction now exists that a future MIDI source could implement. No such source is built,
+and nothing in the engine gained polyphonic capability.
 
 ---
 
@@ -84,6 +96,9 @@ Do not change these without writing a superseding ADR.
 | 2 | Does metronome click bleed through the amplitude gate? | Stage B fallback design | Harness built; needs speakers + mic |
 | ~~3~~ | ~~Is a 2048 window adequate for bass / low cello?~~ | — | **Resolved** — see below |
 | 4 | Enable the sub-octave guard for violin and piano? | Stage C config, §6 profiles | Needs a real violin at the top of its range |
+| 5 | What `minScore` completes an `attempt_score` lesson? | Course pacing | Provisional 70. Needs real beginner attempts — a wall or a rubber stamp are both failures |
+| 6 | Can lesson 2 auto-complete from tuner-mode frames instead of self-report? | Starter-course skeleton | Decide when the tuner is wired into a lesson |
+| 7 | Is strum-timing grading viable from the RMS envelope alone? | Guitar course depth | Blocked on the onset-suppression frame count, itself unmeasured |
 
 **OQ3 resolved.** The low-frequency floor is `sampleRate / (windowSize/2 - 1)`, i.e.
 **46.9 Hz** at 2048 / 48 kHz — matching the "roughly 45 Hz" estimate in
@@ -114,12 +129,21 @@ superseding ADR — not an edit to the table above.
 
 ## Next Action
 
-**Finish the spike's hardware measurements.** The document set is complete, the spike
-is built, and the client runs the engine end to end. The only outstanding documentation
-work is filling measured values into `AUDIO_PIPELINE.md`, which needs a microphone.
+**Finish the spike's hardware measurements.** Unchanged, and more urgent than before: a
+learning platform makes accuracy claims to beginners who cannot tell whether the app or
+their own ear is wrong. Shipping teaching content on top of unmeasured gate thresholds is
+the wrong order. This needs a microphone and a room, not more design.
 
-In parallel, the practice-take screen is the next client work that does not depend on
-the server.
+Then, in order:
+
+1. **The practice-take screen** — the last significant client work that does not depend on
+   the server, and the screen every `exercise` lesson wraps.
+2. **The server**, `API_SPEC.md` §§5–8 before §15. Fourteen of the fifteen outstanding
+   screens now need endpoints that do not exist; the backend is the real gate.
+3. **The `NoteSource` refactor** (ADR-013) — cheapest while there is one implementation and
+   one caller.
+4. **One starter course, end to end, for one instrument**, before generating twelve. The
+   generator is worth writing only once the shape is proven on a course built by hand.
 
  The spike is built and ADR-002 —
 the largest scheduled risk in REQUIREMENTS §8 — is confirmed working in Chrome.
@@ -144,3 +168,7 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-13 | API_SPEC.md written — Phase 2 documents complete |
 | 2026-09-13 | Client scaffolded; Stages A–G ported to TypeScript; tuner mode (US-08) working |
 | 2026-09-13 | Worklet build resolved: esbuild emits a self-contained file, identical in dev and production |
+| 2026-09-15 | Learning layer specified: `LEARNING_PLATFORM.md`, ADR-012, ADR-013. DATA_MODEL §11, API_SPEC §15, REQUIREMENTS §4.3 (US-14–US-19) |
+| 2026-09-15 | Scope constant amended to *monophonic audio analysis* (ADR-013); `attempts.input_source` added |
+| 2026-09-15 | Tuner mode removed from the cut list — every starter course depends on it |
+| 2026-09-15 | Timeline constraint in REQUIREMENTS §6 superseded; scope grew from 9 screens to 15 |

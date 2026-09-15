@@ -3,7 +3,7 @@
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Owner:** Avnish Ozarkar
 **Status:** Draft v1.0
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-15
 
 ---
 
@@ -20,6 +20,12 @@ over weeks rather than guessed at.
 The same analysis engine serves voice and any monophonic instrument, because a sung A4
 and a flute A4 are both 440 Hz. The detector does not care what produced the sound.
 
+Around that trainer sits a **learning layer** (ADR-012): every instrument in the
+catalog has a starter course that teaches setup, tuning, first notes, basic notation
+and a first melody, with the exercises above as its graded practice steps. The trainer
+tells a user whether they hit the note; the courses tell them which note to go for and
+why. Model in `LEARNING_PLATFORM.md`.
+
 ---
 
 ## 2. Scope
@@ -34,6 +40,9 @@ and a flute A4 are both 440 Hz. The detector does not care what produced the sou
 | Scoring | Per-note pitch deviation in cents; per-note timing offset in milliseconds |
 | Persistence | User accounts, saved attempts, attempt history |
 | Content | Hand-authored exercise library (scales, intervals, warm-ups) |
+| Courses | One starter course per catalog instrument: text lessons, SVG diagrams, synthesized reference audio, theory quizzes, and graded practice steps |
+| Progress | Server-evaluated lesson completion, ordered unlocking, per-course progress |
+| Input | Audio via microphone. A `NoteSource` abstraction exists for a future MIDI source (ADR-013); no MIDI source is built |
 | Delivery | Deployed, publicly reachable web app |
 
 ### 2.2 Out of Scope
@@ -47,10 +56,20 @@ and a flute A4 are both 440 Hz. The detector does not care what produced the sou
 | Native mobile apps | Web only |
 | Social feed, sharing, multiplayer | Not core to the practice loop |
 | Sheet-music import (MusicXML, PDF) | Exercises are hand-authored JSON in v1 |
+| Video lessons | Recurring hosting cost against a free-tier budget; lessons are text, SVG and synthesized audio |
+| Grading of chords, two-handed playing, strum correctness | Follows from monophonic audio analysis. Taught and self-reported, never presented as graded. `LEARNING_PLATFORM.md` §2 |
+| Web MIDI input | Deferred, not rejected — the abstraction is built, the source is not (ADR-013) |
+| User-authored courses | US-12 (custom exercises) is not built; courses cannot precede it |
 
 **Scope statement for public-facing copy:** Pitchwise is a single-note practice tool for
-voice and melodic instruments. This is a product decision, not a deficiency — a pitch
-trainer is inherently about one note at a time.
+voice and melodic instruments, with starter courses that teach the basics of each. This is
+a product decision, not a deficiency — a pitch trainer is inherently about one note at a
+time.
+
+**The courses must not overclaim.** They are starter courses, never "learn guitar". Any
+lesson teaching something the engine cannot grade carries a `limitation` callout saying so
+(`LEARNING_PLATFORM.md` §5). Twelve shallow courses that are honest about their depth are
+defensible; twelve that imply mastery are not.
 
 ---
 
@@ -89,6 +108,17 @@ Secondary (post-MVP): a teacher who assigns exercises and reviews student attemp
 
 ---
 
+### 4.3 Learning Platform (ADR-012)
+
+- **US-14** As a user, I can browse starter courses and see the one for each instrument I play.
+- **US-15** As a user, I can work through a course in order, with later lessons locked until earlier ones are complete.
+- **US-16** As a user, I can read a lesson with diagrams and hear its example notes played back in tune.
+- **US-17** As a user, practising a lesson's exercise counts toward completing that lesson when I score well enough.
+- **US-18** As a user, I can answer a short theory quiz and see an explanation for every question afterwards.
+- **US-19** As a user, I can mark a self-reported drill complete for things the app tells me plainly it cannot grade.
+
+---
+
 ## 5. Success Criteria
 
 ### 5.1 Functional
@@ -98,6 +128,9 @@ Secondary (post-MVP): a teacher who assigns exercises and reviews student attemp
 - [ ] At least 3 instrument profiles configured plus voice.
 - [ ] Deployed and reachable at a public URL.
 - [ ] Graceful handling of denied or unavailable microphone permission.
+- [ ] At least one complete starter course end to end: enroll → lessons unlock in order → quiz graded → exercise attempt completes a lesson → course shows complete.
+- [ ] Every ungraded lesson carries a visible `limitation` callout. No lesson implies the app verified something it did not.
+- [ ] Lesson completion cannot be set by the client for graded lesson kinds.
 
 ### 5.2 Measured
 
@@ -127,7 +160,7 @@ number of supported instruments, or user count.
 
 | Constraint | Detail |
 |---|---|
-| Timeline | 5 weeks, approx. 15–20 hrs/week |
+| Timeline | **Superseded by ADR-012.** The original 5 weeks covered the trainer alone. The learning layer adds six screens to the eight already outstanding, with one built. No revised estimate is recorded here rather than a guessed one |
 | Team | Solo |
 | Budget | Free tiers only (hosting, database, auth) |
 | Browser support | Chromium and Firefox desktop. Safari best-effort — AudioWorklet support is present but historically quirky. Mobile out of scope for v1. |
@@ -162,10 +195,16 @@ If the schedule slips, cut in this order. Do not cut out of order.
 1. Notation rendering (VexFlow) → piano-roll display only
 2. Rhythm / timing scoring → pitch accuracy only
 3. Progress analytics → plain chronological attempt history
-4. Tuner mode
+4. Course count — ship starter courses in tranches rather than all twelve at once
+   (`courses.is_published` exists for this)
+5. Quizzes → content and exercise lessons only
+
+**Tuner mode moved off this list.** It was position 4; lesson 2 of every starter course
+uses it (`LEARNING_PLATFORM.md` §4.1), so cutting it now breaks every course.
 
 **Protected, never cut:** authentication, deployment, README with architecture and
-measured numbers, demo video.
+measured numbers, demo video, and the `limitation` callouts — a course that overclaims is
+worse than no course.
 
 ---
 

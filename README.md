@@ -1,12 +1,18 @@
 # Pitchwise
 
-Real-time pitch feedback for voice and melodic instruments. Sing or play an exercise into
-your microphone and see your pitch traced against the target in real time, then get a
-per-note scorecard measuring how many cents sharp or flat you were.
+Real-time pitch feedback for voice and melodic instruments, plus starter courses that
+teach the basics of each. Sing or play an exercise into your microphone and see your pitch
+traced against the target in real time, then get a per-note scorecard measuring how many
+cents sharp or flat you were.
 
-**Status:** In development. All six foundation documents complete. The week-1 spike is
-built and `AudioWorklet` is de-risked; its hardware measurements are outstanding. The
-client is scaffolded with the audio engine ported and tuner mode working.
+Every instrument in the catalog has a starter course — setup, tuning, first notes, reading
+notation, a first melody — with those exercises as its graded practice steps. The trainer
+tells you whether you hit the note; the courses tell you which note to go for and why.
+
+**Status:** In development. Seven design documents complete, including the learning layer
+(ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
+measurements are outstanding. The client is scaffolded with the audio engine ported and
+tuner mode working — 1 of 15 screens.
 
 ---
 
@@ -35,6 +41,15 @@ trumpet, violin, cello, guitar and piano melodies.
 detection is an open research problem and out of proportion to this project. Pitchwise is
 a single-note practice tool by design.
 
+**Taught but not graded.** Courses for guitar and piano do teach chords, and courses for
+every instrument cover technique — posture, bowing, embouchure, hand shape. The engine
+cannot assess any of it, so those lessons are self-reported and say so on the page. The
+full boundary of what is and is not graded is `LEARNING_PLATFORM.md` §2, and no lesson may
+imply the app verified something it did not.
+
+A `NoteSource` abstraction (ADR-013) leaves room for a Web MIDI input later, which would
+make chords gradable on MIDI-capable instruments. It is not built.
+
 ## Stack
 
 | Layer | Choice |
@@ -51,10 +66,11 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 
 | Area | State |
 |---|---|
-| Documents | 6 of 6 complete |
+| Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | Scaffolded. 1 of 9 screens built |
+| Client | Scaffolded. 1 of 15 screens built |
+| Learning layer | Specified, not built — `LEARNING_PLATFORM.md` |
 | Server | Not started |
 
 ### Spike — what remains
@@ -85,7 +101,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Onset suppression — blocked on the spike's frame count
 - [ ] Microphone device picker and permission pre-flight
 
-**Screens — 8 of 9 remaining**
+**Screens — 14 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
 - [ ] Onboarding: choose instrument or voice (US-01)
@@ -96,14 +112,26 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Attempt history (US-07)
 - [ ] Microphone denied or unavailable (§5.1)
 
+*Learning layer (ADR-012):*
+
+- [ ] Course catalog (US-14)
+- [ ] Course detail with modules, lessons and progress (US-15)
+- [ ] Lesson: content — block renderer for prose, diagram, listen, callout (US-16)
+- [ ] Lesson: quiz with post-submission explanations (US-18)
+- [ ] Lesson: drill with self-report (US-19)
+- [ ] Lesson: exercise — chrome around the practice-take screen, not a second one (US-17)
+
 **Infrastructure**
 
 - [ ] Routing
 - [ ] Auth provider integration — blocked on Clerk vs Auth0 (`API_SPEC.md` §14)
 - [ ] API client and types shared with the server
 - [ ] Piano-roll rendering of target against detected pitch
+- [ ] `NoteSource` abstraction over the audio engine (ADR-013)
+- [ ] Course seed generator — skeleton plus per-instrument overrides (`DATA_MODEL.md` §11.9)
+- [ ] Starter-course content: 3 prose lessons and an SVG diagram set per instrument
 
-Six of the eight remaining screens consume endpoints that do not exist yet, so the
+Twelve of the fourteen remaining screens consume endpoints that do not exist yet, so the
 backend is the real gate on finishing the frontend.
 
 ## Measured results
@@ -127,6 +155,7 @@ backend is the real gate on finishing the frontend.
 | `docs/MANIFEST.md` | Build status, locked constants, open questions |
 | `docs/DATA_MODEL.md` | Schema, JSONB shapes, seed data, scoring formula |
 | `docs/API_SPEC.md` | Endpoints, auth, validation, pagination |
+| `docs/LEARNING_PLATFORM.md` | Courses, lessons, progress, and what can and cannot be graded |
 | `spike/RESULTS.md` | Synthetic measurements from the spike, and what is still unmeasured |
 
 ## Running it
@@ -147,7 +176,10 @@ node spike/measure.mjs                      # regenerate spike/RESULTS.md
 ## Next action
 
 Take the spike's hardware measurements: latency, gate thresholds, metronome bleed, and a
-real instrument. That fills the table above and closes `AUDIO_PIPELINE.md` §9.
+real instrument. That fills the table above and closes `AUDIO_PIPELINE.md` §9. It matters
+more now than it did — a course teaching beginners cannot rest on unmeasured gates, since
+a beginner cannot tell whether the app or their own ear is wrong.
 
-In parallel, the practice-take screen is the next piece of the client that does not
-require the server.
+Then the practice-take screen, which is the last significant client work that does not
+require the server and the screen every `exercise` lesson wraps. Then the server. Then one
+starter course built by hand, end to end, before generating twelve.
