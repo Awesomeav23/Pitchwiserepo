@@ -1,14 +1,18 @@
 # MANIFEST.md
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
-**Phase:** 3 of 3 — documents complete, build underway
+**Phase:** 3 of 3 — documents complete. Client substantially built and **entirely unverified**; server not started; hardware measurements not started
 **Last checkpoint:** 2026-09-15 (all 12 starter courses written; unverified in a browser)
 
 ---
 
 ## Progress
 
-**7 / 7 documents complete (100%)**
+**Documents:** 7 / 7 complete. **Client:** 8 of 15 screens. **Server:** not started.
+**Measurements:** not started.
+
+Nothing in the client has been used by a person. It typechecks, builds, and passes 20
+headless scoring checks; the audio path, the engraving and the quiz flow have never run.
 
 ## File Status
 
@@ -35,11 +39,9 @@
 | Client: learning layer (US-14–US-19) | **Built on local seed data.** Catalog, course detail, lesson view, block renderer, quizzes, progress, ordered unlocking. Never used by a person |
 | Sheet music (ADR-015) | **Stage 1 built.** VexFlow engraving with playback, lazy-loaded. Cursor and live staff feedback not built |
 | Starter-course content, 12 instruments | **12 of 12 written**, 98 lessons, all published. Generated from one skeleton plus per-instrument overrides (`learning/generate.ts`, `learning/content.ts`) |
-| Client: remaining 10 screens | Not started — list in `README.md` |
-| Client: 6 learning-layer screens | Not started — `LEARNING_PLATFORM.md` §8 |
+| Client: remaining 7 screens | Not started — sign-in, onboarding, exercise library, exercise detail, scorecard, attempt history, mic-denied. List in `README.md` |
 | `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
-| Course seed generator | Not started — `DATA_MODEL.md` §11.9 |
-| Starter-course content, 12 instruments | Not started — 3 prose lessons + a diagram set each |
+| Course seed generator | **Built.** `learning/generate.ts` + `learning/content.ts`. Emits all 12 courses from one skeleton; refuses a course whose notation shift disagrees with its instrument profile |
 | Server | Not started — contract in `API_SPEC.md`, now including §15 |
 
 ### Spike status against `AUDIO_PIPELINE.md` §9

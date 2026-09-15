@@ -13,7 +13,7 @@ note; the courses tell you which note to go for and why.
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
 measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 5 of 15 screens.
+tuner mode working — 8 of 15 screens.
 
 ---
 
@@ -70,7 +70,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | 5 of 15 screens built — catalog, course, lesson, practice take, tuner |
+| Client | 8 of 15 screens built — catalog, course, four lesson kinds, practice take, tuner |
 | Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
 | Server | Not started |
 
@@ -102,7 +102,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
 - [ ] Microphone device picker and permission pre-flight
 
-**Screens — 10 of 15 remaining**
+**Screens — 7 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
 - [ ] Onboarding: choose instrument or voice (US-01)
