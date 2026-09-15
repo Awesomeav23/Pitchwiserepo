@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete, build underway
-**Last checkpoint:** 2026-09-15 (learning layer specified — ADR-012, ADR-013)
+**Last checkpoint:** 2026-09-15 (learning layer specified; `NoteSource` built)
 
 ---
 
@@ -33,7 +33,7 @@
 | Client scaffold + audio engine | **Complete.** Vite + React + TypeScript; Stages A–G in an AudioWorklet using Pitchy; tuner mode (US-08) |
 | Client: remaining 8 screens | Not started — list in `README.md` |
 | Client: 6 learning-layer screens | Not started — `LEARNING_PLATFORM.md` §8 |
-| `NoteSource` abstraction (ADR-013) | Not started — refactor of the existing engine, one implementation |
+| `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
 | Course seed generator | Not started — `DATA_MODEL.md` §11.9 |
 | Starter-course content, 12 instruments | Not started — 3 prose lessons + a diagram set each |
 | Server | Not started — contract in `API_SPEC.md`, now including §15 |
@@ -136,10 +136,8 @@ the wrong order. This needs a microphone and a room, not more design.
 
 Then, in order:
 
-1. **The `NoteSource` refactor** (ADR-013). First, not third. The ADR's own argument is
-   that the seam is cheapest while there is one implementation and one caller — and today
-   there is exactly one caller, `client/src/screens/Tuner.tsx`. The practice-take screen
-   would be the second. Doing it after that screen means refactoring both.
+1. ~~**The `NoteSource` refactor** (ADR-013).~~ **Done**, before the practice-take screen
+   became its second caller. Unverified in a browser.
 2. **The practice-take screen** — the last significant client work that does not depend on
    the server, and the screen every `exercise` lesson wraps.
 3. **The server**, `API_SPEC.md` §§5–8 before §15. Twelve of the fourteen outstanding
@@ -174,3 +172,4 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | Scope constant amended to *monophonic audio analysis* (ADR-013); `attempts.input_source` added |
 | 2026-09-15 | Tuner mode removed from the cut list — every starter course depends on it |
 | 2026-09-15 | Timeline constraint in REQUIREMENTS §6 superseded; scope grew from 9 screens to 15 |
+| 2026-09-15 | `NoteSource` built (ADR-013). Engine implements it, tuner consumes it. `events.onFrame` replaced by `subscribe`. Not browser-verified |

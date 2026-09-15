@@ -13,7 +13,8 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { PitchEngine, MicrophoneError } from '../audio/engine';
-import type { SourceKind, TrackReport } from '../audio/engine';
+import type { AudioInputKind, TrackReport } from '../audio/engine';
+import { assertContinuousPitch, onPitchFrames } from '../audio/note-source';
 import { INSTRUMENT_PROFILES, profileById, detectionFloorHz, profileBelowFloor } from '../audio/profiles';
 import { bandFor, hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { DEFAULT_CONFIG } from '../audio/types';
@@ -26,7 +27,7 @@ const BAND_COLOR: Record<string, string> = {
 
 export function Tuner() {
   const [profileId, setProfileId] = useState('voice_tenor');
-  const [source, setSource] = useState<SourceKind>('mic');
+  const [inputKind, setInputKind] = useState<AudioInputKind>('mic');
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,13 +48,16 @@ export function Tuner() {
   const engine = engineRef.current;
 
   useEffect(() => {
-    engine.events.onFrame = (f) => {
+    // This screen is a continuous pitch display and cannot render anything
+    // from a note-only source. Fail here rather than on an empty canvas.
+    assertContinuousPitch(engine);
+    const unsubscribe = onPitchFrames(engine, (f) => {
       const arr = framesRef.current;
       arr.push(f);
       if (arr.length > 3000) arr.splice(0, arr.length - 3000);
-    };
+    });
     engine.events.onTrack = setTrack;
-    return () => { void engine.stop(); };
+    return () => { unsubscribe(); void engine.stop(); };
   }, [engine]);
 
   useEffect(() => { engine.setProfile(profile); }, [engine, profile]);
@@ -68,7 +72,8 @@ export function Tuner() {
         setTrack(null);
       } else {
         framesRef.current = [];
-        await engine.start(source);
+        engine.setInput(inputKind);
+        await engine.start();
         setRunning(true);
       }
     } catch (err) {
@@ -77,7 +82,7 @@ export function Tuner() {
     } finally {
       setBusy(false);
     }
-  }, [engine, source]);
+  }, [engine, inputKind]);
 
   // ---- draw loop -------------------------------------------------------
   useEffect(() => {
@@ -134,9 +139,9 @@ export function Tuner() {
 
       <section className="controls">
         <div className="seg">
-          {(['mic', 'synth'] as SourceKind[]).map((k) => (
-            <button key={k} className={source === k ? 'on' : ''} disabled={running}
-              onClick={() => setSource(k)}>
+          {(['mic', 'synth'] as AudioInputKind[]).map((k) => (
+            <button key={k} className={inputKind === k ? 'on' : ''} disabled={running}
+              onClick={() => setInputKind(k)}>
               {k === 'mic' ? 'Microphone' : 'Test tone'}
             </button>
           ))}

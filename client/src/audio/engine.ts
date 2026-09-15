@@ -4,10 +4,18 @@
  */
 import { MedianOctaveFilter } from './median-filter';
 import { nearestNote } from './pitch';
-import { DEFAULT_CONFIG, Reason } from './types';
+import { DEFAULT_CONFIG, ENGINE_VERSION, Reason } from './types';
 import type { AnalysedFrame, EngineConfig, InstrumentProfile, PitchFrame } from './types';
+import type {
+  InputSource, NoteSource, Observation, SourceCapabilities, Unsubscribe,
+} from './note-source';
 
-export type SourceKind = 'mic' | 'synth';
+/**
+ * Where the audio comes from. Distinct from `InputSource` in note-source.ts:
+ * both of these are audio, and both produce `inputSource: 'audio'` attempts.
+ * The test tone exists so the engine can be exercised without a microphone.
+ */
+export type AudioInputKind = 'mic' | 'synth';
 
 /** Built by `npm run build:worklet` into public/, so the path is stable. */
 const WORKLET_URL = `${import.meta.env.BASE_URL}pitch-processor.js`;
@@ -55,12 +63,31 @@ export function describeMicError(err: unknown): MicrophoneError {
   return new MicrophoneError(name, MIC_MESSAGES[name] ?? `Could not open the microphone (${name}).`);
 }
 
+/**
+ * Audio-specific callbacks that have no place on `NoteSource` — a MIDI source
+ * has no microphone track to report on. Pitch data goes through `subscribe`.
+ */
 export interface EngineEvents {
-  onFrame?: (frame: AnalysedFrame) => void;
   onTrack?: (report: TrackReport) => void;
 }
 
-export class PitchEngine {
+/**
+ * Audio analysis is monophonic (ADR-004), reports pitch continuously, has no
+ * notion of how hard a note was struck, and measures deviation in cents —
+ * which is the entire point of the product.
+ */
+const AUDIO_CAPABILITIES: SourceCapabilities = {
+  continuousPitch: true,
+  polyphonic: false,
+  velocity: false,
+  cents: true,
+};
+
+export class PitchEngine implements NoteSource {
+  readonly inputSource: InputSource = 'audio';
+  readonly capabilities = AUDIO_CAPABILITIES;
+  readonly version = ENGINE_VERSION;
+
   private ctx: AudioContext | null = null;
   private node: AudioWorkletNode | null = null;
   private stream: MediaStream | null = null;
@@ -70,6 +97,10 @@ export class PitchEngine {
 
   private config: EngineConfig = { ...DEFAULT_CONFIG };
   private profile: InstrumentProfile;
+
+  private input: AudioInputKind = 'mic';
+  private deviceId: string | undefined;
+  private listeners = new Set<(o: Observation) => void>();
 
   readonly events: EngineEvents = {};
 
@@ -103,7 +134,23 @@ export class PitchEngine {
     this.node?.port.postMessage({ type: 'config', clarityThreshold: value });
   }
 
-  async start(kind: SourceKind, deviceId?: string): Promise<void> {
+  /**
+   * Choose the audio input before starting. `NoteSource.start()` takes no
+   * arguments because what a source needs to open differs per implementation,
+   * so that choice lives here instead.
+   */
+  setInput(kind: AudioInputKind, deviceId?: string): void {
+    if (this.running) throw new Error('Stop the engine before changing its input.');
+    this.input = kind;
+    this.deviceId = deviceId;
+  }
+
+  subscribe(listener: (o: Observation) => void): Unsubscribe {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  }
+
+  async start(): Promise<void> {
     if (this.running) return;
     const ctx = new AudioContext({ latencyHint: 'interactive' });
     this.ctx = ctx;
@@ -118,7 +165,8 @@ export class PitchEngine {
     // anticipated.
     await ctx.audioWorklet.addModule(WORKLET_URL);
 
-    if (kind === 'mic') {
+    if (this.input === 'mic') {
+      const deviceId = this.deviceId;
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -194,7 +242,12 @@ export class PitchEngine {
       name = n.name;
       centsOff = n.cents;
     }
-    this.events.onFrame?.({ ...frame, filteredHz, midi, noteName: name, centsOff });
+    const analysed: AnalysedFrame = { ...frame, filteredHz, midi, noteName: name, centsOff };
+    this.emit({ type: 'pitch', timeMs: analysed.timestamp, frame: analysed });
+  }
+
+  private emit(o: Observation): void {
+    for (const listener of this.listeners) listener(o);
   }
 }
 
