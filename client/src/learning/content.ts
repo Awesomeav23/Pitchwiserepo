@@ -16,7 +16,7 @@ import type { Block } from './types';
 const CANNOT_SEE: Block = {
   kind: 'callout',
   tone: 'limitation',
-  md: 'Pitchwise cannot see you. Posture, hand position, breath and tone are taught here but never graded — the app only ever measures the frequency you produce. Nothing in this course scores how you are holding anything.',
+  md: 'Pitchwise scores pitch only. Posture, breath and hand position matter and are taught here, but the app hears you rather than seeing you — it cannot tell you whether your technique is right.',
 };
 
 const nextSteps = (what: string): Block[] => [
@@ -205,7 +205,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
         { kind: 'prose', md: 'An **E minor** chord is the easiest first shape: second finger on the second fret of the A string, third finger on the second fret of the D string, and strum all six. Two fingers, and nothing to mute.' },
         { kind: 'prose', md: 'Press just behind the frets, arch your fingers so they do not touch the neighbouring strings, and strum slowly enough to hear each string. If one buzzes or thuds, it is being touched by the side of a finger — arch higher.' },
         { kind: 'prose', md: 'Then try **A minor**: first finger on the first fret of the B string, second on the second fret of the D string, third on the second fret of the G string, and strum from the A string down. Switch between the two until the change takes less than a bar.' },
-        { kind: 'callout', tone: 'limitation', md: 'Pitchwise **cannot grade this lesson**. The detector finds one note at a time, and a chord is several at once — real-time polyphonic pitch detection is a different and much harder problem, deliberately out of scope. Mark it complete yourself when the shapes ring cleanly. Everything you have been scored on so far was a single note; this is not, and the app is not pretending otherwise.' },
+        { kind: 'callout', tone: 'limitation', md: 'Pitchwise hears one note at a time, and a chord is several. Mark this complete yourself when the shapes ring cleanly.' },
       ],
     },
   },
@@ -264,7 +264,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
         { kind: 'prose', md: 'A **C major triad**: thumb on middle C, third finger on E, fifth finger on G. Press all three together, with the same relaxed arm weight you have used for single notes.' },
         { kind: 'prose', md: 'Listen for whether all three sound at exactly the same moment. Unevenness is the thing to fix first, and it is easier to hear than to feel — play it, hold it, and listen to whether one note arrived late.' },
         { kind: 'prose', md: 'Then move the same shape up: **D F A**, then **E G B**. The hand shape does not change; only where it sits does.' },
-        { kind: 'callout', tone: 'limitation', md: 'Pitchwise **cannot grade this lesson**. The detector finds one note at a time, and a triad is three at once — real-time polyphonic pitch detection is a different and much harder problem, deliberately out of scope. Mark it complete yourself when the three notes sound together cleanly. A MIDI keyboard could grade this exactly, and the app is built to accept one later, but that input is not implemented.' },
+        { kind: 'callout', tone: 'limitation', md: 'Pitchwise hears one note at a time, and a triad is three. Mark this complete yourself when they sound together cleanly. A MIDI keyboard could grade this exactly; that input is not built yet.' },
       ],
     },
   },

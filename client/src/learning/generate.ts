@@ -95,6 +95,14 @@ export function shiftSpec(spec: string, semitones: number): string {
   }).join(' ');
 }
 
+/**
+ * "Clarinet (B flat)" → "clarinet", "Guitar (melody)" → "guitar". The display
+ * name carries qualifiers that belong on a catalog card and not in the middle of
+ * a sentence, and lowercasing the whole of it mangles the flat sign.
+ */
+const shortName = (name: string): string =>
+  name.replace(/\s*\([^)]*\)/g, '').trim().toLowerCase();
+
 export function generateCourse(c: InstrumentCourse): Course {
   const V = c.verb;
   const played = V === 'sing' ? 'sung' : 'played';
@@ -123,7 +131,7 @@ export function generateCourse(c: InstrumentCourse): Course {
       lessons: [
         {
           id: `${c.instrumentId}-l1`,
-          title: c.verb === 'sing' ? 'Meet your voice' : `Meet the ${c.name.toLowerCase()}`,
+          title: c.verb === 'sing' ? 'Meet your voice' : `Meet the ${shortName(c.name)}`,
           kind: 'content',
           estimatedMinutes: 6,
           completionRule: { kind: 'read' },
