@@ -117,6 +117,20 @@ export class PitchEngine implements NoteSource {
     return this.ctx?.sampleRate ?? null;
   }
 
+  /**
+   * The context the capture graph runs on, exposed so a metronome can be
+   * scheduled on the same clock. Frame timestamps come from this context's
+   * audio clock; a metronome on a second context would drift against them, and
+   * every note window in a take is measured against those timestamps.
+   *
+   * When a MidiSource exists it will have no AudioContext, and whatever plays
+   * the metronome then will need an explicit offset between its clock and the
+   * MIDI event clock. That is a problem for the day that source is built.
+   */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
+
   /** Base + output latency in ms, as reported by the context. Input side is not exposed. */
   get reportedLatencyMs(): number | null {
     if (!this.ctx) return null;

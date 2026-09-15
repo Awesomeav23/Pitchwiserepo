@@ -399,6 +399,58 @@ what the detector can do is unchanged, and this decision does not raise it.
 
 ---
 
+## ADR-014 — Schedule the metronome on the capture AudioContext, not Tone.js
+
+**Status:** Accepted · 2026-09-15
+
+**Context**
+ADR-007 and the README name Tone.js in the frontend stack, and `REQUIREMENTS.md`
+US-04 calls for a metronome with a count-in. The obvious move was to use Tone.js
+for it.
+
+The obstacle is the clock. Every frame the engine emits carries a timestamp taken
+from the capture `AudioContext`'s audio clock (`AUDIO_PIPELINE.md` §4, "On
+timestamps"), and every note window in a take is measured against those
+timestamps. Tone.js constructs its own `AudioContext` by default. Two contexts on
+one machine are two independent clocks: they start at different moments and drift
+apart, so a click scheduled at "beat 4" in one and a frame stamped "2668 ms" in
+the other cannot be compared without measuring an offset that itself changes.
+
+A metronome is also a small thing — a scheduled oscillator with a decay envelope,
+about eighty lines — against a library whose value here is its instruments and
+transport, neither of which this needs.
+
+**Decision**
+The metronome is scheduled directly on the engine's capture `AudioContext`, via a
+`Metronome` class taking that context. `PitchEngine` exposes a `context` getter for
+the purpose. Clicks are synthesized oscillator bursts; no audio assets.
+
+Tone.js is **not** dropped from the stack. It remains the intended player for
+`listen` blocks in lesson content (`LEARNING_PLATFORM.md` §5.1), where nothing is
+being recorded and clock alignment against captured audio does not arise.
+
+**Consequences**
+- Take alignment is exact by construction rather than approximately right and
+  slowly wrong. The count-in, the clicks and the note windows are all expressed
+  in one clock.
+- No dependency added for this, and no audio asset to host — consistent with the
+  free-tier budget.
+- The accent and beat pitches are a one-line change rather than a sample swap.
+- `PitchEngine.context` is now public. That is a real widening of the engine's
+  surface, accepted because the alternative is routing every scheduled sound
+  through the engine, which would make it responsible for playback it has no
+  other reason to know about.
+- **This does not make timing accurate in absolute terms.** Output latency and
+  microphone input latency are both still `[TBM]` (`AUDIO_PIPELINE.md` §7). What
+  the shared clock buys is that the error is a fixed offset rather than a drift.
+  Rhythm scoring is position 2 on the cut list and `msOff` is null on every note
+  result, so nothing currently depends on that offset being known.
+- A future `MidiSource` has no `AudioContext` at all. Whatever plays the
+  metronome then needs an explicit offset between its clock and the MIDI event
+  clock. Noted where the getter is defined; not solved here.
+
+---
+
 ## Decision Index
 
 | ID | Decision | Status |
@@ -416,3 +468,4 @@ what the detector can do is unchanged, and this decision does not raise it.
 | ADR-011 | Hand-authored JSON exercises, no MIDI import | Accepted |
 | ADR-012 | Learning layer above the exercise library | Accepted |
 | ADR-013 | `NoteSource` abstraction, Web MIDI deferred | Accepted |
+| ADR-014 | Metronome on the capture AudioContext, not Tone.js | Accepted |

@@ -12,7 +12,7 @@ tells you whether you hit the note; the courses tell you which note to go for an
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
 measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 1 of 15 screens.
+tuner mode working — 2 of 15 screens.
 
 ---
 
@@ -69,7 +69,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | Scaffolded. 1 of 15 screens built |
+| Client | 2 of 15 screens built — tuner and practice take |
 | Learning layer | Specified, not built — `LEARNING_PLATFORM.md` |
 | Server | Not started |
 
@@ -95,19 +95,19 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 
 **Audio**
 
-- [ ] Metronome with count-in (Tone.js) — US-04
-- [ ] Frame accumulation across a take, and reduction to per-note results
-- [ ] Scoring: coverage, bands, mean absolute cents (`DATA_MODEL.md` §5.1)
-- [ ] Onset suppression — blocked on the spike's frame count
+- [x] Metronome with count-in — US-04. On the capture `AudioContext`, not Tone.js (ADR-014)
+- [x] Frame accumulation across a take, and reduction to per-note results
+- [x] Scoring: coverage, bands, mean absolute cents (`DATA_MODEL.md` §5.1)
+- [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
 - [ ] Microphone device picker and permission pre-flight
 
-**Screens — 14 of 15 remaining**
+**Screens — 13 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
 - [ ] Onboarding: choose instrument or voice (US-01)
 - [ ] Exercise library (US-02)
 - [ ] Exercise detail with note preview (US-02)
-- [ ] Practice take: count-in, metronome, target overlay, live trace (US-04, US-05)
+- [x] Practice take: count-in, metronome, target overlay, live trace (US-04, US-05)
 - [ ] Scorecard (US-06)
 - [ ] Attempt history (US-07)
 - [ ] Microphone denied or unavailable (§5.1)
@@ -126,12 +126,15 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Routing
 - [ ] Auth provider integration — blocked on Clerk vs Auth0 (`API_SPEC.md` §14)
 - [ ] API client and types shared with the server
-- [ ] Piano-roll rendering of target against detected pitch
-- [ ] `NoteSource` abstraction over the audio engine (ADR-013)
+- [x] Piano-roll rendering of target against detected pitch
+- [x] `NoteSource` abstraction over the audio engine (ADR-013)
+- [x] The five seed exercises and the `buildExercise` helper (`DATA_MODEL.md` §4.2, §6.2)
+- [ ] Routing — `App.tsx` switches two screens by hand; picking a router belongs with
+      the course and lesson URLs it will carry
 - [ ] Course seed generator — skeleton plus per-instrument overrides (`DATA_MODEL.md` §11.9)
 - [ ] Starter-course content: 3 prose lessons and an SVG diagram set per instrument
 
-Twelve of the fourteen remaining screens consume endpoints that do not exist yet, so the
+Twelve of the thirteen remaining screens consume endpoints that do not exist yet, so the
 backend is the real gate on finishing the frontend.
 
 ## Measured results
@@ -162,6 +165,7 @@ backend is the real gate on finishing the frontend.
 
 ```sh
 cd client && npm install && npm run dev     # the app, on :5173
+npm run verify                              # 20 headless checks on take scoring
 ```
 
 `npm run dev` bundles the AudioWorklet with esbuild before starting Vite. The worklet does
@@ -180,6 +184,9 @@ real instrument. That fills the table above and closes `AUDIO_PIPELINE.md` §9. 
 more now than it did — a course teaching beginners cannot rest on unmeasured gates, since
 a beginner cannot tell whether the app or their own ear is wrong.
 
-Then the practice-take screen, which is the last significant client work that does not
-require the server and the screen every `exercise` lesson wraps. Then the server. Then one
+The practice-take screen is now built but **has never been run against a microphone** —
+its scoring is covered by headless checks, its audio path by nothing. Opening it is the
+cheapest outstanding verification.
+
+Then the server, which twelve of the thirteen remaining screens depend on. Then one
 starter course built by hand, end to end, before generating twelve.

@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete, build underway
-**Last checkpoint:** 2026-09-15 (learning layer specified; `NoteSource` built)
+**Last checkpoint:** 2026-09-15 (practice-take screen built; unverified in a browser)
 
 ---
 
@@ -28,10 +28,11 @@
 |---|---|
 | Spike: mic → note name, throwaway page | **Build complete.** ADR-002 confirmed in Chrome; 25 DSP checks passing. Checklist and findings in `spike/README.md` |
 | Spike: hardware measurements | **Outstanding** — latency, gate thresholds, metronome bleed, real instruments. See below |
-| 5 exercises hand-authored as JSON | Not started — shapes defined in DATA_MODEL §4, §6.2 |
+| 5 exercises hand-authored as JSON | **Built.** `client/src/exercises/`. Verified against the §6.2 table: note counts, ranges, tempos and the §4.1 worked example all match |
 | Repo init, .gitignore, README skeleton | Complete — remote `Awesomeav23/Pitchwiserepo`, pushed |
 | Client scaffold + audio engine | **Complete.** Vite + React + TypeScript; Stages A–G in an AudioWorklet using Pitchy; tuner mode (US-08) |
-| Client: remaining 8 screens | Not started — list in `README.md` |
+| Client: practice take (US-04, US-05) | **Built.** Count-in, metronome, piano roll, live trace, per-note results. Scoring covered by `npm run verify`; **audio path never run in a browser** |
+| Client: remaining 7 screens | Not started — list in `README.md` |
 | Client: 6 learning-layer screens | Not started — `LEARNING_PLATFORM.md` §8 |
 | `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
 | Course seed generator | Not started — `DATA_MODEL.md` §11.9 |
@@ -138,8 +139,8 @@ Then, in order:
 
 1. ~~**The `NoteSource` refactor** (ADR-013).~~ **Done**, before the practice-take screen
    became its second caller. Unverified in a browser.
-2. **The practice-take screen** — the last significant client work that does not depend on
-   the server, and the screen every `exercise` lesson wraps.
+2. ~~**The practice-take screen**~~ **Done.** Never run against a microphone — opening it
+   is the cheapest outstanding verification in the project.
 3. **The server**, `API_SPEC.md` §§5–8 before §15. Twelve of the fourteen outstanding
    screens need endpoints that do not exist; the backend is the real gate.
 4. **One starter course, end to end, for one instrument**, before generating twelve. The
@@ -173,3 +174,6 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | Tuner mode removed from the cut list — every starter course depends on it |
 | 2026-09-15 | Timeline constraint in REQUIREMENTS §6 superseded; scope grew from 9 screens to 15 |
 | 2026-09-15 | `NoteSource` built (ADR-013). Engine implements it, tuner consumes it. `events.onFrame` replaced by `subscribe`. Not browser-verified |
+| 2026-09-15 | Exercise builder and the five seed exercises built; verified against DATA_MODEL §6.2 |
+| 2026-09-15 | Practice-take screen built (US-04, US-05). ADR-014: metronome on the capture AudioContext, not Tone.js |
+| 2026-09-15 | `npm run verify` — 20 headless checks on take reduction and scoring |

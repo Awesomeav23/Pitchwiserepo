@@ -8,7 +8,8 @@
     "build": "npm run build:worklet && tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:worklet": "esbuild src/audio/pitch-processor.ts --bundle --format=iife --target=es2022 --outfile=public/pitch-processor.js --log-level=warning"
+    "build:worklet": "esbuild src/audio/pitch-processor.ts --bundle --format=iife --target=es2022 --outfile=public/pitch-processor.js --log-level=warning",
+    "verify": "esbuild src/practice/verify.ts --bundle --format=esm --platform=node --outfile=dist/verify.mjs --log-level=warning && node dist/verify.mjs"
   },
   "dependencies": {
     "pitchy": "^4.1.0",
