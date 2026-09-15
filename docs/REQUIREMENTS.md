@@ -192,18 +192,21 @@ number of supported instruments, or user count.
 
 If the schedule slips, cut in this order. Do not cut out of order.
 
-1. Notation rendering (VexFlow) → piano-roll display only
-2. Rhythm / timing scoring → pitch accuracy only
-3. Progress analytics → plain chronological attempt history
-4. Course count — ship starter courses in tranches rather than all twelve at once
+1. Rhythm / timing scoring → pitch accuracy only
+2. Progress analytics → plain chronological attempt history
+3. Course count — ship starter courses in tranches rather than all twelve at once
    (`courses.is_published` exists for this)
-5. Quizzes → content and exercise lessons only
+4. Quizzes → content and exercise lessons only
+
+**Notation moved off this list** and onto the protected one (ADR-015). It was position 1.
+A course that teaches an instrument without showing standard notation teaches somebody to
+imitate a coloured bar.
 
 **Tuner mode moved off this list.** It was position 4; lesson 2 of every starter course
 uses it (`LEARNING_PLATFORM.md` §4.1), so cutting it now breaks every course.
 
 **Protected, never cut:** authentication, deployment, README with architecture and
-measured numbers, demo video, and the `limitation` callouts — a course that overclaims is
+measured numbers, demo video, notation rendering, and the `limitation` callouts — a course that overclaims is
 worse than no course.
 
 ---

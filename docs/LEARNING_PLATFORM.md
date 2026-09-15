@@ -161,17 +161,20 @@ app. This follows ADR-011: hand-authored content, machine-assembled.
 
 ## 5. Lesson Content Blocks
 
-Decision: lesson bodies are **text, diagrams and generated audio**. No video. Video means
-hosting, a player, and a per-instrument recording effort, and it is the one content format
-that carries a recurring bill.
+Decision: lesson bodies are **sheet music, text, diagrams and generated audio**. No video.
+Video means hosting, a player, and a per-instrument recording effort, and it is the one
+content format that carries a recurring bill.
+
+Sheet music is the centre of a lesson, not a decoration on one (ADR-015). Reading is a
+substantial part of what a beginner is here to learn.
 
 ```jsonc
 {
   "version": 1,
   "blocks": [
     { "kind": "prose",   "md": "Rest the guitar on your right thigh..." },
+    { "kind": "score",   "spec": "C4 D4 E4 F4 G4.", "bpm": 90, "caption": "C major, five notes" },
     { "kind": "diagram", "id": "guitar-first-position", "caption": "First position" },
-    { "kind": "listen",  "notes": "C4 D4 E4", "bpm": 90, "caption": "The first three notes" },
     { "kind": "callout", "tone": "note", "md": "If the string buzzes, press closer to the fret." }
   ]
 }
@@ -180,23 +183,35 @@ that carries a recurring bill.
 | Block | Fields | Notes |
 |---|---|---|
 | `prose` | `md` | Restricted Markdown: emphasis, lists, links. No raw HTML |
+| `score` | `spec`, `bpm`, `clef`, `timeSignature`, `caption`, `playable` | Engraved by VexFlow and playable. `spec` is the same compact string as an exercise (ADR-011) |
 | `diagram` | `id`, `caption` | Resolves to an SVG asset by id, never by URL |
-| `listen` | `notes`, `bpm`, `caption` | Played by Tone.js at runtime |
 | `callout` | `tone`, `md` | `tone` is `note`, `warning`, or `limitation` |
+
+The `listen` block from the first draft is **folded into `score`**: a block that sounds
+notes but does not show them turned out to have no use in a lesson that teaches reading.
 
 **`limitation` is a first-class callout tone.** Any lesson teaching something the app
 cannot grade must carry one. That is how §2's boundary reaches the user instead of living
 only in this document.
 
-### 5.1 `listen` blocks reuse the exercise parser
+### 5.1 One authored source, three renderings
 
-`notes` uses the same compact string as `buildExercise` — `"C4 D4 E4 F4 G4."`, `.` to
-double a duration, `-` for a rest. One parser, two consumers. The block stores the string;
-the client synthesizes it with Tone.js at play time. **No audio files are shipped or
-hosted**, which is what keeps the content format free to run.
+`spec` uses the same compact string as `buildExercise` — `"C4 D4 E4 F4 G4."`, `.` to
+double a duration, `-` for a rest. One parser, and the string a lesson carries produces
+all three of:
 
-Reference audio is synthesized, so it is in tune by construction and inherits the A4 = 440
-constant rather than restating it.
+1. the engraved staff the learner reads,
+2. the reference audio they hear when they press play,
+3. the note sequence they are scored against, when the lesson is an exercise.
+
+This is the point of ADR-015. Authoring the notation separately from the exercise would
+make them two sources that can disagree — and they would, on the first tempo change nobody
+propagated.
+
+Playback is Web Audio, not Tone.js (ADR-014, ADR-015). **No audio files are shipped or
+hosted**, which is what keeps the content format free to run. Reference audio is
+synthesized from the same MIDI numbers the scoring uses, so it is in tune by construction
+and inherits the A4 = 440 constant rather than restating it.
 
 ### 5.2 Diagrams
 

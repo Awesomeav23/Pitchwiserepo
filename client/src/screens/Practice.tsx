@@ -43,7 +43,18 @@ interface TakeResult {
   summary: AttemptSummary;
 }
 
-export function Practice() {
+export interface PracticeProps {
+  /** Supplied when a lesson hosts the take. The exercise picker is then hidden
+   *  — a lesson teaches one exercise and letting the learner swap it mid-lesson
+   *  would make the lesson's completion rule meaningless. */
+  exercise?: Exercise;
+  /** Called with the summary each time a take completes. */
+  onResult?: (summary: AttemptSummary) => void;
+  /** Drop the heading, for use inside a lesson that has its own. */
+  embedded?: boolean;
+}
+
+export function Practice({ exercise: fixedExercise, onResult, embedded }: PracticeProps = {}) {
   const [slug, setSlug] = useState(EXERCISES[0].slug);
   const [profileId, setProfileId] = useState('voice_tenor');
   const [phase, setPhase] = useState<Phase>('idle');
@@ -51,7 +62,7 @@ export function Practice() {
   const [result, setResult] = useState<TakeResult | null>(null);
   const [countLabel, setCountLabel] = useState('');
 
-  const exercise = exerciseBySlug(slug);
+  const exercise = fixedExercise ?? exerciseBySlug(slug);
   const profile = profileById(profileId);
   const durationMs = durationOf(exercise.noteSequence);
 
@@ -91,12 +102,14 @@ export function Practice() {
       takeZeroMs: takeZeroMsRef.current,
       hopMs,
     });
+    const summary = scoreAttempt(results);
     resultsRef.current = results;
-    setResult({ results, summary: scoreAttempt(results) });
+    setResult({ results, summary });
     setPhaseBoth('done');
+    onResult?.(summary);
     metronomeRef.current?.stop();
     void engine.stop();
-  }, [engine, exercise, setPhaseBoth]);
+  }, [engine, exercise, setPhaseBoth, onResult]);
 
   const abort = useCallback(() => {
     metronomeRef.current?.stop();
@@ -191,23 +204,27 @@ export function Practice() {
   const outOfRange = exerciseOutOfRange(exercise, profile);
 
   return (
-    <div className="tuner practice">
-      <header>
-        <h1>Pitchwise <small>practice</small></h1>
-        <span className={`pill ${busy ? 'ok' : ''}`}>{phaseLabel(phase)}</span>
-      </header>
+    <div className={embedded ? 'practice embedded' : 'tuner practice'}>
+      {!embedded && (
+        <header>
+          <h1>Pitchwise <small>practice</small></h1>
+          <span className={`pill ${busy ? 'ok' : ''}`}>{phaseLabel(phase)}</span>
+        </header>
+      )}
 
       <section className="controls">
-        <label>
-          Exercise
-          <select value={slug} onChange={(e) => setSlug(e.target.value)} disabled={busy}>
-            {EXERCISES.map((e) => (
-              <option key={e.slug} value={e.slug}>
-                {e.title} · {e.tempoBpm} bpm · level {e.difficulty}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!fixedExercise && (
+          <label>
+            Exercise
+            <select value={slug} onChange={(e) => setSlug(e.target.value)} disabled={busy}>
+              {EXERCISES.map((e) => (
+                <option key={e.slug} value={e.slug}>
+                  {e.title} · {e.tempoBpm} bpm · level {e.difficulty}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label>
           Instrument
@@ -223,9 +240,10 @@ export function Practice() {
           : <button className="primary" onClick={() => void begin()}>
               {phase === 'done' ? 'Again' : 'Start take'}
             </button>}
+        {embedded && <span className="stat inline">{phaseLabel(phase)}</span>}
       </section>
 
-      <p className="stat">{exercise.description}</p>
+      {!embedded && <p className="stat">{exercise.description}</p>}
 
       {error && <p className="alert error">{error}</p>}
 

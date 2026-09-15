@@ -451,6 +451,67 @@ being recorded and clock alignment against captured audio does not arise.
 
 ---
 
+## ADR-015 — Sheet music is core, and shares one source with the exercises
+
+**Status:** Accepted · 2026-09-15
+
+**Context**
+The learning layer was specified with four content blocks — prose, diagram,
+listen, callout — and notation sat at **position 1 on the cut list**
+(`REQUIREMENTS.md` §9): "Notation rendering (VexFlow) → piano-roll display
+only". That ordering came from a product whose centre was a pitch trainer, where
+a piano roll shows a learner everything the scoring cares about.
+
+That is the wrong centre for a learning platform. A course that teaches an
+instrument without showing standard notation teaches somebody to imitate a
+coloured bar. Reading is a substantial part of what a beginner is here to learn,
+and the staff is the thing the rest of their musical life is written in.
+
+There is also a question of where the music comes from. A lesson could carry its
+notation as a separate authored field from the exercise it practises, but then
+the sheet music and the thing being scored are two sources that can disagree —
+and they will, on the first tempo change nobody propagated.
+
+**Decision**
+Notation is core and comes off the cut list. A fifth content block, `score`,
+carries **the same compact note string** as an exercise (ADR-011), and both the
+engraving and the playable audio are derived from it. One authored source, three
+renderings: the staff, the reference audio, and the scoring target.
+
+Rendering is VexFlow's SVG backend, as ADR-008 already chose. It is loaded on
+demand rather than bundled with the app, because it is larger than React and the
+audio engine together and no screen outside the learning layer engraves a note.
+
+Playback is Web Audio, not Tone.js, for the reasons in ADR-014 plus one more: a
+sampled instrument would sound better than synthesis, but samples are audio files
+to host, which is the cost the content format was chosen to avoid.
+
+**Consequences**
+- A lesson's sheet music and the exercise it is scored against cannot drift
+  apart, because neither is authored independently of the other.
+- `REQUIREMENTS.md` §9 loses its first entry, and the cut list is renumbered.
+  Notation joins the protected list: a course without a staff is not the product.
+- The reference audio a learner hears derives from the same MIDI numbers the
+  scoring uses, so it is in tune by construction and inherits the A4 = 440
+  constant rather than restating it.
+- VexFlow adds roughly 1.1 MB to the build, in its own chunk. Screens that do not
+  engrave notation do not load it.
+- Deliberately not supported in v1: ties across barlines, beaming, multiple
+  voices, and key signatures beyond C. The seed library is quarter and half notes
+  in 4/4, and notation that engraves what is actually there beats notation that
+  engraves a general case badly. A note that crosses a barline lands in the bar
+  it started in, engraved rather than refused.
+- Transposing instruments are a real wrinkle this decision defers. A guitar
+  course engraves an octave above sounding pitch and a clarinet course a tone
+  above; both are correct notation and both need explaining in the lesson that
+  introduces the staff. The first published course is voice, whose transposition
+  is zero, so no notation in it means anything other than what it shows.
+- Stage 2 (a cursor following playback) and stage 3 (live feedback on the staff)
+  are not built. The renderer returns a note-index to SVG-element map and the
+  player reports note indices so that neither needs a re-engraving pass.
+
+---
+
 ## Decision Index
 
 | ID | Decision | Status |
@@ -469,3 +530,4 @@ being recorded and clock alignment against captured audio does not arise.
 | ADR-012 | Learning layer above the exercise library | Accepted |
 | ADR-013 | `NoteSource` abstraction, Web MIDI deferred | Accepted |
 | ADR-014 | Metronome on the capture AudioContext, not Tone.js | Accepted |
+| ADR-015 | Sheet music is core; one source for notation, audio and scoring | Accepted |

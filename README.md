@@ -12,7 +12,7 @@ tells you whether you hit the note; the courses tell you which note to go for an
 **Status:** In development. Seven design documents complete, including the learning layer
 (ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
 measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 2 of 15 screens.
+tuner mode working — 5 of 15 screens.
 
 ---
 
@@ -55,7 +55,7 @@ make chords gradable on MIDI-capable instruments. It is not built.
 | Layer | Choice |
 |---|---|
 | Audio | Web Audio API, AudioWorklet, YIN |
-| Frontend | React, TypeScript, Canvas, Tone.js |
+| Frontend | React, TypeScript, Canvas, VexFlow (notation) |
 | Backend | Node, Express, TypeScript |
 | Database | PostgreSQL (JSONB for note sequences) |
 | Auth | Managed provider (Clerk / Auth0) |
@@ -69,8 +69,8 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | 2 of 15 screens built — tuner and practice take |
-| Learning layer | Specified, not built — `LEARNING_PLATFORM.md` |
+| Client | 5 of 15 screens built — catalog, course, lesson, practice take, tuner |
+| Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. One published course; no server |
 | Server | Not started |
 
 ### Spike — what remains
@@ -101,7 +101,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
 - [ ] Microphone device picker and permission pre-flight
 
-**Screens — 13 of 15 remaining**
+**Screens — 10 of 15 remaining**
 
 - [ ] Sign-in / sign-up (US-01, provider-hosted)
 - [ ] Onboarding: choose instrument or voice (US-01)
@@ -114,12 +114,17 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 
 *Learning layer (ADR-012):*
 
-- [ ] Course catalog (US-14)
-- [ ] Course detail with modules, lessons and progress (US-15)
-- [ ] Lesson: content — block renderer for prose, diagram, listen, callout (US-16)
-- [ ] Lesson: quiz with post-submission explanations (US-18)
-- [ ] Lesson: drill with self-report (US-19)
-- [ ] Lesson: exercise — chrome around the practice-take screen, not a second one (US-17)
+- [x] Course catalog (US-14)
+- [x] Course detail with modules, lessons and progress (US-15)
+- [x] Lesson: content — block renderer for prose, score, diagram, callout (US-16)
+- [x] Lesson: quiz with post-submission explanations (US-18)
+- [x] Lesson: drill with self-report (US-19)
+- [x] Lesson: exercise — chrome around the practice-take screen, not a second one (US-17)
+- [x] Sheet music: VexFlow engraving with playback (ADR-015), stage 1 of 3
+- [ ] Notation stage 2 — cursor following playback
+- [ ] Notation stage 3 — live feedback on the staff during a take
+- [ ] Starter courses for the other 11 instruments — listed, unpublished
+- [ ] SVG diagram sets — every `diagram` block currently degrades to its caption
 
 **Infrastructure**
 
@@ -134,8 +139,11 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Course seed generator — skeleton plus per-instrument overrides (`DATA_MODEL.md` §11.9)
 - [ ] Starter-course content: 3 prose lessons and an SVG diagram set per instrument
 
-Twelve of the thirteen remaining screens consume endpoints that do not exist yet, so the
-backend is the real gate on finishing the frontend.
+The learning layer runs entirely on local seed data with progress in `localStorage`. That
+is a stand-in, not the design: `LEARNING_PLATFORM.md` §7 requires progress to be
+server-evaluated, because a client that can declare its own completion makes the model
+advisory. The rules live in one function so there is a single thing to move when the
+server exists.
 
 ## Measured results
 
@@ -184,9 +192,9 @@ real instrument. That fills the table above and closes `AUDIO_PIPELINE.md` §9. 
 more now than it did — a course teaching beginners cannot rest on unmeasured gates, since
 a beginner cannot tell whether the app or their own ear is wrong.
 
-The practice-take screen is now built but **has never been run against a microphone** —
-its scoring is covered by headless checks, its audio path by nothing. Opening it is the
-cheapest outstanding verification.
+Walk the published course end to end in a browser. The learning layer has never been used
+by a person: the engraving, the playback, the quiz, the unlocking and the embedded take are
+all unverified beyond a typecheck and a build.
 
-Then the server, which twelve of the thirteen remaining screens depend on. Then one
-starter course built by hand, end to end, before generating twelve.
+Then the server, so progress stops living in `localStorage`. Then the remaining eleven
+courses, and the notation cursor.
