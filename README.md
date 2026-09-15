@@ -10,10 +10,40 @@ notation, a first melody — with those exercises as its graded practice steps. 
 courses, 98 lessons, sheet music throughout. The trainer tells you whether you hit the
 note; the courses tell you which note to go for and why.
 
-**Status:** In development. Seven design documents complete, including the learning layer
-(ADR-012). The week-1 spike is built and `AudioWorklet` is de-risked; its hardware
-measurements are outstanding. The client is scaffolded with the audio engine ported and
-tuner mode working — 11 of 15 screens.
+---
+
+## Where this is
+
+The product is built and the plumbing is proven. What is missing is that **nobody has
+used it yet**, and it still only runs on one laptop.
+
+**Done**
+
+- [x] Seven design documents, 15 ADRs
+- [x] Audio engine — `AudioWorklet`, pitch detection, gating, median filter, `NoteSource`
+- [x] Metronome with count-in, on the capture clock
+- [x] Frame accumulation → per-note results → scoring
+- [x] Learning platform — catalog, course detail, lessons, quizzes, ordered unlocking
+- [x] Sheet music — VexFlow engraving with playback
+- [x] **12 starter courses, 98 lessons** — one per instrument, all written
+- [x] **11 of 15 screens** — onboarding, catalog, course, four lesson kinds, practice take,
+      scorecard, microphone-denied, tuner
+- [x] **Backend complete** — Postgres, full schema, seed, auth, every endpoint in `API_SPEC.md`
+- [x] Progress decided by the server, not the browser
+- [x] 75 automated checks — 55 API, 20 scoring
+
+**Left, and needs a person**
+
+- [ ] **Use it in a browser.** Nothing in the client has been rendered for a human. It
+      typechecks, builds, and its data contracts are verified; that is not the same as
+      working
+- [ ] **Choose Clerk or Auth0** (`API_SPEC.md` §14) — unblocks sign-in
+- [ ] **One session at a microphone** — fills every `TBM` in this file
+
+**Left, and is code**
+
+- [ ] 4 screens: sign-in, exercise library, exercise detail, attempt history
+- [ ] Deployment — nothing is hosted anywhere
 
 ---
 
