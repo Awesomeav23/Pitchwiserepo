@@ -136,12 +136,14 @@ the wrong order. This needs a microphone and a room, not more design.
 
 Then, in order:
 
-1. **The practice-take screen** — the last significant client work that does not depend on
+1. **The `NoteSource` refactor** (ADR-013). First, not third. The ADR's own argument is
+   that the seam is cheapest while there is one implementation and one caller — and today
+   there is exactly one caller, `client/src/screens/Tuner.tsx`. The practice-take screen
+   would be the second. Doing it after that screen means refactoring both.
+2. **The practice-take screen** — the last significant client work that does not depend on
    the server, and the screen every `exercise` lesson wraps.
-2. **The server**, `API_SPEC.md` §§5–8 before §15. Fourteen of the fifteen outstanding
-   screens now need endpoints that do not exist; the backend is the real gate.
-3. **The `NoteSource` refactor** (ADR-013) — cheapest while there is one implementation and
-   one caller.
+3. **The server**, `API_SPEC.md` §§5–8 before §15. Twelve of the fourteen outstanding
+   screens need endpoints that do not exist; the backend is the real gate.
 4. **One starter course, end to end, for one instrument**, before generating twelve. The
    generator is worth writing only once the shape is proven on a course built by hand.
 
