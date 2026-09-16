@@ -37,6 +37,15 @@ export function Catalog({ onOpen }: { onOpen: (course: CourseCard) => void }) {
   const nameOf = (instrumentId: string) =>
     instruments.data?.find((i) => i.id === instrumentId)?.displayName ?? instrumentId;
 
+  /**
+   * "Piano (melody)" → "Piano" for the heading only. The qualifier is not
+   * decoration — it warns a pianist that only single notes are scored — but it
+   * belongs on the card they click, not repeated a line above it. Voice types
+   * keep their "Voice — soprano" form, which is a name rather than a caveat.
+   */
+  const headingName = (instrumentId: string) =>
+    nameOf(instrumentId).replace(/\s*\([^)]*\)/g, '').trim();
+
   const primary = me?.instruments.find((i) => i.isPrimary)?.instrumentId;
 
   return (
@@ -46,7 +55,7 @@ export function Catalog({ onOpen }: { onOpen: (course: CourseCard) => void }) {
       {mine.length > 0 && (
         <section>
           <h2 className="section-head">
-            {mine.length === 1 ? `Your course · ${nameOf(mine[0].instrumentId)}` : 'Your instruments'}
+            {mine.length === 1 ? `Your course · ${headingName(mine[0].instrumentId)}` : 'Your instruments'}
           </h2>
           <div className="cards">
             {mine.map((c) => (
