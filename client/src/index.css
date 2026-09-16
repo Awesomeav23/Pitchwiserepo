@@ -370,3 +370,8 @@ button.play:hover { border-color: var(--acc); }
 .optional { color: #55556a; font-size: 11px; }
 
 .nav-user .link { font-size: 12px; }
+
+.section-head.sub { font-size: 11px; opacity: .75; margin-top: 18px; }
+.catalog-note { margin: -4px 0 12px; }
+.card.mine { border-color: var(--acc); background: #1a1730; }
+.card.mine:hover { background: #211c3d; }

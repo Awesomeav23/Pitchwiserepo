@@ -41,8 +41,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
       <h2 className="big-question">What do you play?</h2>
       <p className="lede">
-        This sets the frequency range the detector listens in, and picks the starter course
-        you land on. You can change it later, and add more than one.
+        This sets the frequency range the detector listens in, and puts your course at the
+        top of the catalog. Every other instrument stays open to you, and you can add more
+        than one later.
       </p>
 
       {error && <p className="alert error">{error}</p>}
