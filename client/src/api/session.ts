@@ -13,7 +13,13 @@
  * The fallback is deliberate: adding Clerk must not be able to break the working
  * state. Without a key the app behaves exactly as it did before it existed.
  */
-const KEY = 'pitchwise.devSession.v1';
+/**
+ * v2, and the bump matters. A v1 session was created silently on first load,
+ * before a sign-in page existed — nobody signed into one. Treating those as
+ * "already signed in" would send every existing browser straight past the form
+ * with an identity its owner never chose, so they are not honoured.
+ */
+const KEY = 'pitchwise.devSession.v2';
 
 export const CLERK_PUBLISHABLE_KEY: string | undefined =
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
