@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete. Server built and verified; client substantially built and **entirely unverified**; hardware measurements not started
-**Last checkpoint:** 2026-09-15 (all 12 starter courses written; unverified in a browser)
+**Last checkpoint:** 2026-09-16 (sign-in built; sign-in flow is the only part of the client a person has used)
 
 ---
 
@@ -192,4 +192,9 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | Client wired to the API; progress moved off localStorage to server-evaluated. Hash routing added |
 | 2026-09-15 | Scorecard (US-06), onboarding (US-01) and the microphone-denied states (§5.1) built |
 | 2026-09-16 | ADR-016: Clerk chosen, resolving API_SPEC §14's first open item. Sign-in built, code-split, optional at runtime |
-| 2026-09-16 | Placeholder sign-in form for use before a Clerk key exists — checks nothing, and says so on the page |
+| 2026-09-16 | Local accounts for use before a Clerk key exists — salted SHA-256 passwords, verified on sign-in, wrong ones refused. Superseded the placeholder form that checked nothing |
+| 2026-09-16 | Creating an account hands off to sign-in rather than signing you straight in |
+| 2026-09-16 | **First day any of the client was used by a person.** Four bugs found in the sign-in flow, none of which the 93 automated checks could have caught |
+| 2026-09-16 | Fixed: pre-sign-in sessions were treated as signed in, so the app skipped the sign-in page entirely |
+| 2026-09-16 | Fixed: the sign-in form was not remembering the email, and had no `name`/`id` on its inputs, so no password manager would save or fill it |
+| 2026-09-16 | Fixed: the catalog ignored the instrument chosen at onboarding, while onboarding claimed it decided which course you land on. Your course now leads the catalog; the other eleven stay browsable |

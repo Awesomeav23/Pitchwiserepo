@@ -45,6 +45,9 @@ used it yet**, and it still only runs on one laptop.
 - [ ] 3 screens: exercise library, exercise detail, attempt history
 - [ ] Deployment — nothing is hosted anywhere
 
+Day-by-day history is the change log in `docs/MANIFEST.md`. This section is a
+snapshot of the present, not a diary — the two would drift if both tried to be both.
+
 ---
 
 ## How it works
