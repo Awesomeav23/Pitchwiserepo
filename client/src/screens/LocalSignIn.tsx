@@ -20,6 +20,7 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -30,11 +31,22 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
       ? await createDevAccount(email, password, name)
       : await signInDev(email, password);
     setBusy(false);
-    if (result.ok) onSignedIn();
-    else setError(result.reason);
+
+    if (!result.ok) { setError(result.reason); return; }
+
+    if (mode === 'create') {
+      // Hand off to sign-in rather than letting them in. The email is kept so
+      // there is one field to fill, and the password is cleared because typing
+      // it again is the point.
+      setMode('signIn');
+      setPassword('');
+      setCreated(true);
+      return;
+    }
+    onSignedIn();
   };
 
-  const switchTo = (next: Mode) => { setMode(next); setError(null); };
+  const switchTo = (next: Mode) => { setMode(next); setError(null); setCreated(false); };
   const valid = /.+@.+\..+/.test(email.trim()) && password.length > 0;
 
   return (
@@ -42,13 +54,18 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
       <header><h1>Pitchwise</h1></header>
 
       <h2 className="big-question">
-        {mode === 'create' ? 'Create your account' : 'Welcome back'}
+        {mode === 'create' ? 'Create your account' : created ? 'Now sign in' : 'Welcome back'}
       </h2>
       <p className="lede">
         Your courses, scores and attempt history are tied to your account, so your progress
         is kept rather than lost when you close the tab.
       </p>
 
+      {created && (
+        <p className="alert ok-alert">
+          Account created. Sign in with the password you just chose.
+        </p>
+      )}
       {error && <p className="alert error">{error}</p>}
 
       <form className="signin-form" onSubmit={(e) => void submit(e)}>

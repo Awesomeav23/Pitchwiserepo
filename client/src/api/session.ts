@@ -81,7 +81,15 @@ export const accountCount = (): number => Object.keys(readAccounts()).length;
 
 export type AuthResult = { ok: true } | { ok: false; reason: string };
 
-/** Creates an account. Fails if the address is already taken, as a real one would. */
+/**
+ * Creates an account. Fails if the address is already taken, as a real one
+ * would.
+ *
+ * Deliberately does **not** sign the new account in. Creating an account and
+ * proving you hold its password are two different things, and collapsing them
+ * means the sign-in path is never exercised by the person who just set the
+ * password — which is exactly when a typo in it is cheapest to discover.
+ */
 export async function createDevAccount(
   email: string, password: string, name: string,
 ): Promise<AuthResult> {
@@ -102,7 +110,6 @@ export async function createDevAccount(
   };
   accounts[key] = account;
   writeAccounts(accounts);
-  setSession(account);
   return { ok: true };
 }
 
