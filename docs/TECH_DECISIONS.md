@@ -538,8 +538,9 @@ Clerk. The sign-in screen is Clerk's `<SignIn>` component inside a page of ours;
 no form, no password handling, no reset flow of our own.
 
 Auth selection is **optional at runtime**. `VITE_CLERK_PUBLISHABLE_KEY` decides:
-set, the app is behind Clerk; unset, it runs on the development session token the
-server accepts only when `AUTH_DEV_MODE` is on. Everything above
+set, the app is behind Clerk; unset, it runs on local accounts — created,
+password-verified and signed in within the browser, producing the development
+token the server accepts only when `AUTH_DEV_MODE` is on. Everything above
 `api/session.ts` is identical either way.
 
 The Clerk SDK is code-split, so a build without a key does not download it.
@@ -561,6 +562,17 @@ The Clerk SDK is code-split, so a build without a key does not download it.
   setup and the generic message sends people hunting through key configuration.
 - Switching to Auth0 later remains three environment variables on the server and
   one component on the client. The seam ADR-006 created is not spent by this.
+- The fallback is a working sign-in rather than a stub: accounts are created,
+  passwords are salted and hashed with SHA-256, a wrong one is refused, and an
+  unknown address and a wrong password return the same message so the form
+  cannot enumerate accounts. A single SHA-256 pass is not a password KDF and
+  would be wrong for anything real — but it is not real, and storing what
+  someone typed in plain text is a bad habit to leave lying around in a
+  placeholder.
+- Those accounts live in one browser's `localStorage`, so they do not follow a
+  user between devices and do not survive clearing site data. The sign-in page
+  says so, because it is the only way this differs from the flow it stands in
+  for.
 - Trade-off accepted: the development fallback is a second identity path that
   exists only to be unused in production. It is gated on `NODE_ENV` at server
   startup, so it cannot be the one that ships.

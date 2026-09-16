@@ -7,7 +7,7 @@ import { Loading, Failed } from './components/Async';
 import { Catalog } from './screens/Catalog';
 import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
-import { MockSignIn } from './screens/MockSignIn';
+import { LocalSignIn } from './screens/LocalSignIn';
 import { Onboarding } from './screens/Onboarding';
 import { Practice } from './screens/Practice';
 import { Scorecard } from './screens/Scorecard';
@@ -31,7 +31,7 @@ export default function App() {
   const [devUser, setDevUser] = useState(() => devSession());
 
   if (!usingClerk()) {
-    if (!devUser) return <MockSignIn onSignedIn={() => setDevUser(devSession())} />;
+    if (!devUser) return <LocalSignIn onSignedIn={() => setDevUser(devSession())} />;
     return <AuthedApp key={devUser.sub} onSignOut={() => { signOutDev(); setDevUser(null); }} />;
   }
 

@@ -37,7 +37,7 @@ used it yet**, and it still only runs on one laptop.
 - [ ] **Use it in a browser.** Nothing in the client has been rendered for a human. It
       typechecks, builds, and its data contracts are verified; that is not the same as
       working
-- [ ] **Create a Clerk account** and put the key in `client/.env.local` — until then sign-in is a placeholder form that checks nothing
+- [ ] **Create a Clerk account** and put the key in `client/.env.local` — until then sign-in works against accounts stored in the browser, which do not follow you between devices
 - [ ] **One session at a microphone** — fills every `TBM` in this file
 
 **Left, and is code**
@@ -134,7 +134,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 
 **Screens — 3 of 15 remaining**
 
-- [x] Sign-in / sign-up (US-01) — Clerk when a key is set, placeholder form otherwise
+- [x] Sign-in / sign-up (US-01) — Clerk when a key is set, local accounts otherwise
 - [x] Onboarding: choose instrument or voice (US-01)
 - [ ] Exercise library (US-02)
 - [ ] Exercise detail with note preview (US-02)
