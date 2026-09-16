@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete. Server built and verified; client substantially built and **entirely unverified**; hardware measurements not started
-**Last checkpoint:** 2026-09-16 (sign-in built; sign-in flow is the only part of the client a person has used)
+**Last checkpoint:** 2026-09-16 (15 of 15 screens; sign-in, catalog, exercise detail and the start of a take used by a person)
 
 ---
 
@@ -194,14 +194,15 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | ADR-016: Clerk chosen, resolving API_SPEC §14's first open item. Sign-in built, code-split, optional at runtime |
 | 2026-09-16 | Local accounts for use before a Clerk key exists — salted SHA-256 passwords, verified on sign-in, wrong ones refused. Superseded the placeholder form that checked nothing |
 | 2026-09-16 | Creating an account hands off to sign-in rather than signing you straight in |
-| 2026-09-16 | **First day any of the client was used by a person.** Four bugs found in the sign-in flow, none of which the 93 automated checks could have caught |
+| 2026-09-16 | **First day any of the client was used by a person.** Five bugs found by clicking through it, none of which the automated checks could have caught — four in the sign-in and catalog flow, and one crash |
 | 2026-09-16 | Fixed: pre-sign-in sessions were treated as signed in, so the app skipped the sign-in page entirely |
 | 2026-09-16 | Fixed: the sign-in form was not remembering the email, and had no `name`/`id` on its inputs, so no password manager would save or fill it |
 | 2026-09-16 | Fixed: the catalog ignored the instrument chosen at onboarding, while onboarding claimed it decided which course you land on. Your course now leads the catalog; the other eleven stay browsable |
+| 2026-09-16 | Catalog heading drops a parenthesised qualifier — "Your course · Piano" rather than "Piano (melody)" twice, since the card below repeats it |
 | 2026-09-16 | Attempt history built (US-07) — paginated, filterable by exercise, deletable. `api.attempts` was discarding `nextCursor`, making everything past the first page unreachable |
 | 2026-09-16 | Exercise library and detail built (US-02). Migration 003 adds `exercises.in_library`, separating the 5 authored exercises from the 48 transposed course variants |
 | 2026-09-16 | **All 15 screens built.** 58 API checks, 20 scoring checks |
-| 2026-09-16 | Fixed: standalone practice crashed to a blank page — it built a take from the exercise *list*, which omits `noteSequence` by design (API_SPEC §7). Broken since the API wiring; nobody had clicked it |
+| 2026-09-16 | Fixed (5th bug, found by use): standalone practice crashed to a blank page — it built a take from the exercise *list*, which omits `noteSequence` by design (API_SPEC §7). Broken since the API wiring the day before; nobody had clicked it |
 | 2026-09-16 | `ApiExercise` split into summary and full record, so using a list row where notes are needed is a compile error rather than a runtime crash |
 | 2026-09-16 | Error boundary added — a render crash showed a blank page with the error only in the console |
 | 2026-09-16 | **First audio verification.** A take was started in Chrome: microphone capture, the AudioWorklet, the metronome and the count-in all ran, and phase transitions on the audio clock worked. ADR-002 and ADR-014 confirmed in the app rather than only in the spike |
