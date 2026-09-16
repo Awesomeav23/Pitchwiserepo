@@ -11,7 +11,18 @@ import type {
   LessonProgress, Me, Page, QuizResult,
 } from './types';
 
-const BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:8787/api/v1';
+/**
+ * Same origin once deployed, because the client and the API ship from one
+ * project — so there is nothing to configure in production and CORS never
+ * applies. In development they are two processes on two ports, so the local
+ * API is the default there.
+ *
+ * VITE_API_BASE overrides both, for pointing a local client at a deployed API.
+ */
+const BASE = import.meta.env.VITE_API_BASE
+  ?? (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:8787/api/v1'
+    : '/api/v1');
 
 export class ApiError extends Error {
   readonly status: number;

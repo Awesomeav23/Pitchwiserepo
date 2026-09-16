@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm --prefix server ci && npm --prefix server run build && npm --prefix client ci && npm --prefix client run build",
+  "outputDirectory": "client/dist",
+  "installCommand": "echo 'dependencies are installed by buildCommand, per workspace'",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 15
+    }
+  }
+}

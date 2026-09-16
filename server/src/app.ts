@@ -1,13 +1,16 @@
 /**
- * Pitchwise API — the contract is docs/API_SPEC.md.
+ * The Express application — the contract is docs/API_SPEC.md.
  *
  * An ordinary CRUD service by design (ADR-001): audio never reaches it, so
  * there is no streaming, no upload path and no heavy work on any request.
+ *
+ * Exported rather than started here, because it runs two ways: `serve.ts`
+ * listens on a port in development, and the deployed build hands this same app
+ * to a serverless function. Nothing about the routes differs between them.
  */
 import express from 'express';
 import { config } from './lib/config.ts';
 import { errorHandler } from './lib/errors.ts';
-import { pool } from './db/pool.ts';
 import { authenticate } from './middleware/auth.ts';
 import { rateLimit } from './middleware/rateLimit.ts';
 import { health } from './routes/health.ts';
@@ -52,17 +55,4 @@ app.use((_req, res) => {
 });
 app.use(errorHandler);
 
-const server = app.listen(config.port, () => {
-  console.log(`Pitchwise API on http://localhost:${config.port}/api/v1`);
-  if (config.auth.devMode) {
-    console.log('AUTH_DEV_MODE is on — Authorization: Bearer dev:<sub>:<email>:<name>');
-  }
-});
-
-// Finish in-flight requests before exiting, so a deploy does not drop a take a
-// user just performed and cannot repeat.
-for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-  process.on(signal, () => {
-    server.close(() => { void pool.end().then(() => process.exit(0)); });
-  });
-}
+export default app;
