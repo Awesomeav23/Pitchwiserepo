@@ -74,7 +74,21 @@ export const api = {
   removeInstrument: (instrumentId: string) =>
     request<void>(`/me/instruments/${instrumentId}`, { method: 'DELETE' }),
 
-  exercises: () => request<Page<ApiExercise>>('/exercises?limit=100').then((p) => p.items),
+  /**
+   * The browsable library by default — the five authored exercises. Pass
+   * `all` to include the transposed course variants, which is only useful for
+   * resolving a title for an attempt made inside a lesson.
+   */
+  exercises: (opts: { all?: boolean; type?: string; difficulty?: number;
+                      fits?: string; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (opts.all) q.set('all', 'true');
+    if (opts.type) q.set('type', opts.type);
+    if (opts.difficulty) q.set('difficulty', String(opts.difficulty));
+    if (opts.fits) q.set('fits', opts.fits);
+    q.set('limit', String(opts.limit ?? 100));
+    return request<Page<ApiExercise>>(`/exercises?${q}`).then((p) => p.items);
+  },
   exercise: (idOrSlug: string) => request<ApiExercise>(`/exercises/${idOrSlug}`),
 
   courses: () => request<Page<CourseCard>>('/courses').then((p) => p.items),

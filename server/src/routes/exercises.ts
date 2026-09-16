@@ -12,7 +12,7 @@ interface Row {
   id: string; slug: string; title: string; description: string | null; type_id: string;
   difficulty: number; tempo_bpm: number; time_signature: string;
   lowest_midi: number; highest_midi: number; note_sequence: { notes: unknown[] };
-  created_at: Date;
+  in_library: boolean; created_at: Date;
 }
 
 const summary = (r: Row) => {
@@ -22,6 +22,7 @@ const summary = (r: Row) => {
     id: r.id, slug: r.slug, title: r.title, description: r.description,
     typeId: r.type_id, difficulty: r.difficulty, tempoBpm: r.tempo_bpm,
     timeSignature: r.time_signature, lowestMidi: r.lowest_midi, highestMidi: r.highest_midi,
+    inLibrary: r.in_library,
     // The list returns length, not every note — sequences are the largest field
     // in the table and a library view renders none of them.
     noteCount: notes.length,
@@ -40,6 +41,12 @@ exercises.get('/exercises', wrap(async (req, res) => {
 
   const where: string[] = [];
   const params: unknown[] = [];
+
+  // The library by default. The table also holds a transposed variant of each
+  // exercise per instrument (DATA_MODEL §11.9), which are attempted through
+  // their lessons and are not browsable content. `all=true` includes them, for
+  // callers that need to resolve a title for an arbitrary attempt.
+  if (req.query.all !== 'true') where.push('in_library');
   const add = (clause: string, value: unknown) => { params.push(value); where.push(clause.replace('?', `$${params.length}`)); };
 
   if (req.query.type) add('type_id = ?', req.query.type);

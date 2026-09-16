@@ -102,14 +102,25 @@ check('removing one of two instruments is 204', r.status === 204, r.body);
 
 // ---- exercises (§7) ----------------------------------------------------
 
-r = await call('/exercises?limit=5', { token: alice });
-check('exercise list is paginated', r.body.items.length === 5 && r.body.nextCursor !== null, r.body.items?.length);
+// The library is the five authored exercises; the transposed course variants
+// are excluded unless asked for (DATA_MODEL §11.9, `in_library`).
+r = await call('/exercises', { token: alice });
+check('the library is the authored exercises only', r.body.items.length === 5, r.body.items?.length);
+check('every library exercise is flagged as such',
+  r.body.items.every((i: any) => i.inLibrary === true), r.body.items?.[0]);
 check('list omits noteSequence and returns noteCount', r.body.items[0].noteSequence === undefined
   && typeof r.body.items[0].noteCount === 'number', r.body.items[0]);
 
+r = await call('/exercises?all=true&limit=100', { token: alice });
+check('all=true includes the course variants', r.body.items.length > 40, r.body.items?.length);
+
+// Paging is exercised against the full set, since five rows cannot show it.
+r = await call('/exercises?all=true&limit=5', { token: alice });
+check('exercise list is paginated', r.body.items.length === 5 && r.body.nextCursor !== null, r.body.items?.length);
+
 const cursor = r.body.nextCursor;
 const firstPageIds = r.body.items.map((i: any) => i.id);
-r = await call(`/exercises?limit=5&cursor=${encodeURIComponent(cursor)}`, { token: alice });
+r = await call(`/exercises?all=true&limit=5&cursor=${encodeURIComponent(cursor)}`, { token: alice });
 check('the next page does not repeat the first',
   r.body.items.every((i: any) => !firstPageIds.includes(i.id)), r.body.items?.length);
 
@@ -123,7 +134,7 @@ const exercise = r.body;
 
 r = await call('/exercises?fits=bass', { token: alice });
 check('fits= excludes exercises outside the range',
-  r.body.items.length < 53 && r.body.items.every((i: any) => i.lowestMidi >= 34), r.body.items?.length);
+  r.body.items.length < 5 && r.body.items.every((i: any) => i.lowestMidi >= 34), r.body.items?.length);
 
 // ---- courses and lessons (§15) -----------------------------------------
 

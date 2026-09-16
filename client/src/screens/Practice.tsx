@@ -70,8 +70,8 @@ export interface PracticeProps {
  * itself. The split exists because the take's hooks all depend on having an
  * exercise, and a hook cannot wait for a fetch.
  */
-export function Practice(props: PracticeProps = {}) {
-  const [slug, setSlug] = useState<string | null>(null);
+export function Practice(props: PracticeProps & { initialSlug?: string } = {}) {
+  const [slug, setSlug] = useState<string | null>(props.initialSlug ?? null);
 
   // Only fetched in standalone mode; inside a lesson the exercise arrives with
   // the lesson, which is why that response embeds it.

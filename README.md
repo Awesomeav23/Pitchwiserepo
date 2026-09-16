@@ -26,11 +26,12 @@ used it yet**, and it still only runs on one laptop.
 - [x] Learning platform — catalog, course detail, lessons, quizzes, ordered unlocking
 - [x] Sheet music — VexFlow engraving with playback
 - [x] **12 starter courses, 98 lessons** — one per instrument, all written
-- [x] **13 of 15 screens** — sign-in, onboarding, catalog, course, four lesson kinds,
-      practice take, scorecard, attempt history, microphone-denied, tuner
+- [x] **15 of 15 screens** — sign-in, onboarding, catalog, course, four lesson kinds,
+      exercise library and detail, practice take, scorecard, attempt history,
+      microphone-denied, tuner
 - [x] **Backend complete** — Postgres, full schema, seed, auth, every endpoint in `API_SPEC.md`
 - [x] Progress decided by the server, not the browser
-- [x] 75 automated checks — 55 API, 20 scoring
+- [x] 78 automated checks — 58 API, 20 scoring
 
 **Left, and needs a person**
 
@@ -42,7 +43,7 @@ used it yet**, and it still only runs on one laptop.
 
 **Left, and is code**
 
-- [ ] 2 screens: exercise library, exercise detail
+- [ ] 1 screen: microphone device picker (the denied/unavailable states are built)
 - [ ] Deployment — nothing is hosted anywhere
 
 Day-by-day history is the change log in `docs/MANIFEST.md`. This section is a
@@ -103,7 +104,7 @@ Reasoning for each: `docs/TECH_DECISIONS.md`
 | Documents | 7 of 7 complete |
 | Spike | Built. ADR-002 confirmed in Chrome. **Measurements outstanding** — see below |
 | Audio engine | Stages A–G ported to TypeScript, running in an AudioWorklet |
-| Client | 13 of 15 screens built — sign-in, onboarding, catalog, course, four lesson kinds, practice take, scorecard, history, mic-denied, tuner. Wired to the API |
+| Client | 15 of 15 screens built — sign-in, onboarding, catalog, course, four lesson kinds, exercise library, exercise detail, practice take, scorecard, history, mic-denied, tuner |
 | Learning layer | **Built on local seed data.** Catalog, course detail, lesson view, quizzes, progress. All 12 courses written, 98 lessons; no server |
 | Server | **Built.** Express + Postgres, all endpoints, 55 end-to-end checks passing |
 
@@ -135,12 +136,12 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
 - [ ] Microphone device picker and permission pre-flight — the denied/unavailable states are built; choosing between two microphones is not
 
-**Screens — 2 of 15 remaining**
+**Screens — 1 of 15 remaining**
 
 - [x] Sign-in / sign-up (US-01) — Clerk when a key is set, local accounts otherwise
 - [x] Onboarding: choose instrument or voice (US-01)
-- [ ] Exercise library (US-02)
-- [ ] Exercise detail with note preview (US-02)
+- [x] Exercise library (US-02) — filter by type and by what fits your range
+- [x] Exercise detail with note preview (US-02) — engraved at written pitch, playable
 - [x] Practice take: count-in, metronome, target overlay, live trace (US-04, US-05)
 - [x] Scorecard (US-06) — deviation chart, per-note table, addressable by URL
 - [x] Attempt history (US-07) — paginated, filterable, deletable

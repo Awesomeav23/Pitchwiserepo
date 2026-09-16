@@ -21,7 +21,9 @@ const PAGE = 20;
 export function History() {
   // Fetched once and joined client-side. An attempt carries an exerciseId, not
   // a title — the same reason the catalog fetches instruments alongside courses.
-  const exercises = useApi(() => api.exercises(), []);
+  // `all` because an attempt may have been made inside a lesson, against a
+  // transposed variant that is not library content.
+  const exercises = useApi(() => api.exercises({ all: true }), []);
   const instruments = useApi(() => api.instruments(), []);
 
   const [filter, setFilter] = useState<string>('');
@@ -83,7 +85,7 @@ export function History() {
           Exercise
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="">All exercises</option>
-            {exercises.data?.map((e) => (
+            {exercises.data?.filter((e) => e.inLibrary !== false).map((e) => (
               <option key={e.id} value={e.id}>{e.title}</option>
             ))}
           </select>

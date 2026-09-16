@@ -8,7 +8,7 @@
 
 ## Progress
 
-**Documents:** 7 / 7 complete. **Client:** 13 of 15 screens, wired to the API.
+**Documents:** 7 / 7 complete. **Client:** 15 of 15 screens, wired to the API.
 **Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
@@ -199,3 +199,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | Fixed: the sign-in form was not remembering the email, and had no `name`/`id` on its inputs, so no password manager would save or fill it |
 | 2026-09-16 | Fixed: the catalog ignored the instrument chosen at onboarding, while onboarding claimed it decided which course you land on. Your course now leads the catalog; the other eleven stay browsable |
 | 2026-09-16 | Attempt history built (US-07) — paginated, filterable by exercise, deletable. `api.attempts` was discarding `nextCursor`, making everything past the first page unreachable |
+| 2026-09-16 | Exercise library and detail built (US-02). Migration 003 adds `exercises.in_library`, separating the 5 authored exercises from the 48 transposed course variants |
+| 2026-09-16 | **All 15 screens built.** 58 API checks, 20 scoring checks |

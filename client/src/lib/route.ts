@@ -18,7 +18,9 @@ export type Route =
   | { name: 'lesson'; id: string }
   | { name: 'attempt'; id: string }
   | { name: 'history' }
-  | { name: 'practice' }
+  | { name: 'exercises' }
+  | { name: 'exercise'; slug: string }
+  | { name: 'practice'; slug?: string }
   | { name: 'tuner' };
 
 export function parseRoute(hash: string): Route {
@@ -27,8 +29,10 @@ export function parseRoute(hash: string): Route {
     case 'course':   return path[1] ? { name: 'course', slug: path[1] } : { name: 'catalog' };
     case 'lesson':   return path[1] ? { name: 'lesson', id: path[1] } : { name: 'catalog' };
     case 'attempt':  return path[1] ? { name: 'attempt', id: path[1] } : { name: 'catalog' };
-    case 'history':  return { name: 'history' };
-    case 'practice': return { name: 'practice' };
+    case 'history':   return { name: 'history' };
+    case 'exercises': return { name: 'exercises' };
+    case 'exercise':  return path[1] ? { name: 'exercise', slug: path[1] } : { name: 'exercises' };
+    case 'practice': return { name: 'practice', slug: path[1] };
     case 'tuner':    return { name: 'tuner' };
     default:         return { name: 'catalog' };
   }
@@ -39,8 +43,10 @@ export function hrefFor(route: Route): string {
     case 'course':   return `#/course/${route.slug}`;
     case 'lesson':   return `#/lesson/${route.id}`;
     case 'attempt':  return `#/attempt/${route.id}`;
-    case 'history':  return '#/history';
-    case 'practice': return '#/practice';
+    case 'history':   return '#/history';
+    case 'exercises': return '#/exercises';
+    case 'exercise':  return `#/exercise/${route.slug}`;
+    case 'practice': return route.slug ? `#/practice/${route.slug}` : '#/practice';
     case 'tuner':    return '#/tuner';
     default:         return '#/';
   }

@@ -9,7 +9,9 @@ import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
 import { LocalSignIn } from './screens/LocalSignIn';
 import { Onboarding } from './screens/Onboarding';
+import { ExerciseDetail } from './screens/ExerciseDetail';
 import { History } from './screens/History';
+import { Library } from './screens/Library';
 import { Practice } from './screens/Practice';
 import { Scorecard } from './screens/Scorecard';
 import { Tuner } from './screens/Tuner';
@@ -83,6 +85,10 @@ function AuthedApp({ onSignOut }: { onSignOut?: () => void } = {}) {
             onClick={() => navigate({ name: 'practice' })}>
             Practice
           </button>
+          <button className={route.name === 'exercises' || route.name === 'exercise' ? 'on' : ''}
+            onClick={() => navigate({ name: 'exercises' })}>
+            Exercises
+          </button>
           <button className={route.name === 'history' ? 'on' : ''}
             onClick={() => navigate({ name: 'history' })}>
             History
@@ -122,8 +128,10 @@ function AuthedApp({ onSignOut }: { onSignOut?: () => void } = {}) {
 
       {/* Keyed so leaving a screen unmounts it, releasing the microphone rather
           than leaving two engines contending for it. */}
+      {route.name === 'exercises' && <Library key="exercises" />}
+      {route.name === 'exercise' && <ExerciseDetail key={route.slug} slug={route.slug} />}
       {route.name === 'history' && <History key="history" />}
-      {route.name === 'practice' && <Practice key="practice" />}
+      {route.name === 'practice' && <Practice key={route.slug ?? 'practice'} initialSlug={route.slug} />}
       {route.name === 'tuner' && <Tuner key="tuner" />}
     </MeContext.Provider>
   );

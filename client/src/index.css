@@ -410,3 +410,10 @@ button.play:hover { border-color: var(--acc); }
 }
 .empty p { margin: 0 0 10px; }
 .empty .stat { max-width: 44ch; margin: 0 auto 16px; }
+
+/* ---- exercise library and detail ---- */
+
+.controls label.checkbox { flex-direction: row; gap: 7px; cursor: pointer; }
+.controls label.checkbox input { accent-color: var(--acc); width: 15px; height: 15px; }
+.detail-actions { margin: 18px 0 26px; }
+.detail-actions button { padding: 11px 22px; }

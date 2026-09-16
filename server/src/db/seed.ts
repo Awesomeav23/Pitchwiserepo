@@ -72,21 +72,23 @@ await withTransaction(async (db) => {
   const upsertExercise = async (e: {
     slug: string; title: string; description: string; typeId: string;
     difficulty: number; tempoBpm: number; timeSignature: string; sequence: NoteSequence;
+    inLibrary: boolean;
   }) => {
     const { lowest, highest } = range(e.sequence);
     const { rows } = await db.query<{ id: string }>(
       `INSERT INTO exercises
          (slug, title, description, type_id, difficulty, tempo_bpm, time_signature,
-          lowest_midi, highest_midi, note_sequence)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+          lowest_midi, highest_midi, note_sequence, in_library)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        ON CONFLICT (slug) DO UPDATE SET
          title = EXCLUDED.title, description = EXCLUDED.description,
          type_id = EXCLUDED.type_id, difficulty = EXCLUDED.difficulty,
          tempo_bpm = EXCLUDED.tempo_bpm, lowest_midi = EXCLUDED.lowest_midi,
-         highest_midi = EXCLUDED.highest_midi, note_sequence = EXCLUDED.note_sequence
+         highest_midi = EXCLUDED.highest_midi, note_sequence = EXCLUDED.note_sequence,
+         in_library = EXCLUDED.in_library
        RETURNING id`,
       [e.slug, e.title, e.description, e.typeId, e.difficulty, e.tempoBpm,
-       e.timeSignature, lowest, highest, JSON.stringify(e.sequence)],
+       e.timeSignature, lowest, highest, JSON.stringify(e.sequence), e.inLibrary],
     );
     exerciseIdBySlug.set(e.slug, rows[0].id);
   };
@@ -96,6 +98,7 @@ await withTransaction(async (db) => {
       slug: e.slug, title: e.title, description: e.description ?? '', typeId: e.typeId,
       difficulty: e.difficulty, tempoBpm: e.tempoBpm, timeSignature: e.timeSignature,
       sequence: e.noteSequence,
+      inLibrary: true,   // the five authored exercises are the library
     });
   }
 
@@ -108,6 +111,7 @@ await withTransaction(async (db) => {
         description: `Transposed for ${course.title.replace(' — starter course', '')}.`,
         typeId: inline.typeId, difficulty: inline.difficulty, tempoBpm: inline.bpm,
         timeSignature: '4/4', sequence: inline.sequence,
+        inLibrary: false,   // a course's transposed variant, not browsable content
       });
     }
   }

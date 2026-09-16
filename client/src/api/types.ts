@@ -34,6 +34,10 @@ export interface ApiExercise {
   lowestMidi: number;
   highestMidi: number;
   noteSequence: NoteSequence;
+  /** False for the transposed variants a course generates. */
+  inLibrary?: boolean;
+  noteCount?: number;
+  durationMs?: number;
 }
 
 export type LessonKind = 'content' | 'exercise' | 'quiz' | 'drill';
