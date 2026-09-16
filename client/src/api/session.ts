@@ -43,6 +43,20 @@ export interface DevSession { sub: string; email: string; name: string }
 interface DevAccount extends DevSession { salt: string; hash: string }
 
 const ACCOUNTS_KEY = 'pitchwise.devAccounts.v1';
+const LAST_EMAIL_KEY = 'pitchwise.lastEmail';
+
+/**
+ * The address used last, so the sign-in form can offer it rather than making
+ * someone retype it every visit. Only the address — never the password, which
+ * is the browser's password manager's job and not ours.
+ */
+export function lastEmail(): string {
+  try { return localStorage.getItem(LAST_EMAIL_KEY) ?? ''; } catch { return ''; }
+}
+
+function rememberEmail(email: string): void {
+  try { localStorage.setItem(LAST_EMAIL_KEY, email); } catch { /* storage disabled */ }
+}
 
 /**
  * Accounts live in this browser's localStorage, which is the whole of their
@@ -110,6 +124,7 @@ export async function createDevAccount(
   };
   accounts[key] = account;
   writeAccounts(accounts);
+  rememberEmail(key);
   return { ok: true };
 }
 
@@ -123,6 +138,7 @@ export async function signInDev(email: string, password: string): Promise<AuthRe
   if (!account) return rejected;
   if (await hash(password, account.salt) !== account.hash) return rejected;
   setSession(account);
+  rememberEmail(key);
   return { ok: true };
 }
 

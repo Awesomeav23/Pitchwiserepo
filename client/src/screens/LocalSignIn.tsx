@@ -8,7 +8,7 @@
  * true.
  */
 import { useState } from 'react';
-import { accountCount, createDevAccount, signInDev } from '../api/session';
+import { accountCount, createDevAccount, lastEmail, signInDev } from '../api/session';
 
 type Mode = 'signIn' | 'create';
 
@@ -16,7 +16,9 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
   // Someone with no account here can only be creating one; someone with an
   // account is far more likely to be returning.
   const [mode, setMode] = useState<Mode>(accountCount() > 0 ? 'signIn' : 'create');
-  const [email, setEmail] = useState('');
+  // Offered rather than left blank: the address is not a secret, and retyping
+  // it every visit is the kind of friction that makes a form feel broken.
+  const [email, setEmail] = useState(lastEmail);
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -68,19 +70,26 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
       )}
       {error && <p className="alert error">{error}</p>}
 
-      <form className="signin-form" onSubmit={(e) => void submit(e)}>
+      <form className="signin-form" onSubmit={(e) => void submit(e)}
+            method="post" action="#" name="signin">
         <label>
           Email
-          <input type="email" value={email} autoComplete="username"
-            onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          {/* name and id are what a password manager keys off. Without them
+              Chrome will not offer to save or fill this form at all, however
+              correct the autoComplete hints are. */}
+          <input
+            type="email" id="email" name="email" value={email}
+            autoComplete="username" required
+            onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com"
+          />
         </label>
 
         <label>
           Password
           <input
-            type="password"
-            value={password}
+            type="password" id="password" name="password" value={password}
             autoComplete={mode === 'create' ? 'new-password' : 'current-password'}
+            required minLength={6}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={mode === 'create' ? 'At least 6 characters' : ''}
           />
@@ -89,9 +98,12 @@ export function LocalSignIn({ onSignedIn }: { onSignedIn: () => void }) {
         {mode === 'create' && (
           <label>
             Display name <span className="optional">optional</span>
-            <input type="text" value={name} autoComplete="name"
+            <input
+              type="text" id="displayName" name="displayName" value={name}
+              autoComplete="name"
               onChange={(e) => setName(e.target.value)}
-              placeholder="Taken from your email if blank" />
+              placeholder="Taken from your email if blank"
+            />
           </label>
         )}
 
