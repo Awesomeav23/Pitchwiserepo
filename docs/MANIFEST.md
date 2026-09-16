@@ -201,3 +201,6 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | Attempt history built (US-07) — paginated, filterable by exercise, deletable. `api.attempts` was discarding `nextCursor`, making everything past the first page unreachable |
 | 2026-09-16 | Exercise library and detail built (US-02). Migration 003 adds `exercises.in_library`, separating the 5 authored exercises from the 48 transposed course variants |
 | 2026-09-16 | **All 15 screens built.** 58 API checks, 20 scoring checks |
+| 2026-09-16 | Fixed: standalone practice crashed to a blank page — it built a take from the exercise *list*, which omits `noteSequence` by design (API_SPEC §7). Broken since the API wiring; nobody had clicked it |
+| 2026-09-16 | `ApiExercise` split into summary and full record, so using a list row where notes are needed is a compile error rather than a runtime crash |
+| 2026-09-16 | Error boundary added — a render crash showed a blank page with the error only in the console |

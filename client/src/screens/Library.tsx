@@ -10,7 +10,7 @@ import { api } from '../api/client';
 import { useApi } from '../api/useApi';
 import { useMe } from '../api/useMe';
 import { noteName } from '../audio/pitch';
-import type { ApiExercise } from '../api/types';
+import type { ApiExerciseSummary } from '../api/types';
 import { Loading, Failed } from '../components/Async';
 import { navigate } from '../lib/route';
 
@@ -89,7 +89,7 @@ export function Library() {
   );
 }
 
-function ExerciseCard({ exercise }: { exercise: ApiExercise }) {
+function ExerciseCard({ exercise }: { exercise: ApiExerciseSummary }) {
   const seconds = exercise.durationMs ? Math.round(exercise.durationMs / 1000) : null;
   return (
     <button className="card" onClick={() => navigate({ name: 'exercise', slug: exercise.slug })}>

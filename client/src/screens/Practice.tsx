@@ -20,7 +20,7 @@ import { hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { INSTRUMENT_PROFILES, profileById } from '../audio/profiles';
 import { DEFAULT_CONFIG } from '../audio/types';
 import type { AnalysedFrame, InstrumentProfile } from '../audio/types';
-import type { ApiExercise } from '../api/types';
+import type { ApiExercise, ApiExerciseSummary } from '../api/types';
 import { api } from '../api/client';
 import { describeError, useApi } from '../api/useApi';
 import type { Attempt } from '../api/types';
@@ -73,24 +73,37 @@ export interface PracticeProps {
 export function Practice(props: PracticeProps & { initialSlug?: string } = {}) {
   const [slug, setSlug] = useState<string | null>(props.initialSlug ?? null);
 
-  // Only fetched in standalone mode; inside a lesson the exercise arrives with
-  // the lesson, which is why that response embeds it.
+  // Two requests, and both are necessary. The list populates the picker but
+  // omits noteSequence by design (API_SPEC §7) — sequences are the largest
+  // field and a picker renders none of them. A take needs the notes, so the
+  // chosen exercise is fetched in full.
   const library = useApi(
     () => (props.exercise ? Promise.resolve([]) : api.exercises()),
     [props.exercise],
   );
 
+  const chosenSlug = slug ?? library.data?.[0]?.slug ?? null;
+
+  const full = useApi(
+    () => (props.exercise || !chosenSlug
+      ? Promise.resolve(null)
+      : api.exercise(chosenSlug)),
+    [props.exercise, chosenSlug],
+  );
+
   if (props.exercise) return <PracticeTake {...props} exercise={props.exercise} library={[]} />;
-  if (library.loading) return <Loading what="the exercise library" />;
+  if (library.loading || full.loading) return <Loading what="the exercise" />;
   if (library.error || !library.data?.length) {
     return <Failed message={library.error ?? 'No exercises found.'} onRetry={library.reload} />;
   }
+  if (full.error || !full.data) {
+    return <Failed message={full.error ?? 'That exercise could not be loaded.'} onRetry={full.reload} />;
+  }
 
-  const chosen = library.data.find((e) => e.slug === slug) ?? library.data[0];
   return (
     <PracticeTake
       {...props}
-      exercise={fromApi(chosen)}
+      exercise={fromApi(full.data)}
       library={library.data}
       onSelectSlug={setSlug}
     />
@@ -108,7 +121,7 @@ function PracticeTake({
   exercise, lessonId, onResult, embedded, library, onSelectSlug,
 }: PracticeProps & {
   exercise: Exercise;
-  library: ApiExercise[];
+  library: ApiExerciseSummary[];
   onSelectSlug?: (slug: string) => void;
 }) {
   const { primaryInstrumentId } = useMe();

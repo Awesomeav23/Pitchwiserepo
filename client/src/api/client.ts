@@ -7,7 +7,7 @@
  */
 import { getToken } from './session';
 import type {
-  ApiExercise, ApiInstrument, Attempt, CourseCard, CourseOutline, LessonDetail,
+  ApiExercise, ApiExerciseSummary, ApiInstrument, Attempt, CourseCard, CourseOutline, LessonDetail,
   LessonProgress, Me, Page, QuizResult,
 } from './types';
 
@@ -87,7 +87,7 @@ export const api = {
     if (opts.difficulty) q.set('difficulty', String(opts.difficulty));
     if (opts.fits) q.set('fits', opts.fits);
     q.set('limit', String(opts.limit ?? 100));
-    return request<Page<ApiExercise>>(`/exercises?${q}`).then((p) => p.items);
+    return request<Page<ApiExerciseSummary>>(`/exercises?${q}`).then((p) => p.items);
   },
   exercise: (idOrSlug: string) => request<ApiExercise>(`/exercises/${idOrSlug}`),
 

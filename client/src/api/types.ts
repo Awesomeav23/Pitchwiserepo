@@ -22,7 +22,18 @@ export interface ApiInstrument {
   isMeasured: boolean;
 }
 
-export interface ApiExercise {
+/**
+ * What `GET /exercises` returns. **No `noteSequence`** — the list omits it by
+ * design (API_SPEC §7), because sequences are the largest field in the table
+ * and a picker renders none of them.
+ *
+ * Split from the full record deliberately. These were one type, with
+ * `noteSequence` marked required, which let a summary be used where a full
+ * record was needed and crashed at runtime instead of at compile time. The
+ * separation is the whole point: a screen that needs the notes cannot now be
+ * handed something that does not have them.
+ */
+export interface ApiExerciseSummary {
   id: string;
   slug: string;
   title: string;
@@ -33,11 +44,15 @@ export interface ApiExercise {
   timeSignature: string;
   lowestMidi: number;
   highestMidi: number;
-  noteSequence: NoteSequence;
+  noteCount: number;
+  durationMs: number;
   /** False for the transposed variants a course generates. */
   inLibrary?: boolean;
-  noteCount?: number;
-  durationMs?: number;
+}
+
+/** What `GET /exercises/:idOrSlug` returns, and what a take needs. */
+export interface ApiExercise extends ApiExerciseSummary {
+  noteSequence: NoteSequence;
 }
 
 export type LessonKind = 'content' | 'exercise' | 'quiz' | 'drill';
