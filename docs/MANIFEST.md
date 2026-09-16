@@ -204,3 +204,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | Fixed: standalone practice crashed to a blank page — it built a take from the exercise *list*, which omits `noteSequence` by design (API_SPEC §7). Broken since the API wiring; nobody had clicked it |
 | 2026-09-16 | `ApiExercise` split into summary and full record, so using a list row where notes are needed is a compile error rather than a runtime crash |
 | 2026-09-16 | Error boundary added — a render crash showed a blank page with the error only in the console |
+| 2026-09-16 | **First audio verification.** A take was started in Chrome: microphone capture, the AudioWorklet, the metronome and the count-in all ran, and phase transitions on the audio clock worked. ADR-002 and ADR-014 confirmed in the app rather than only in the spike |
+| 2026-09-16 | Still unverified past that point: whether the live trace draws, whether frames land in the right note windows, and whether a take reaches the database. Needs a quiet room |

@@ -35,9 +35,9 @@ used it yet**, and it still only runs on one laptop.
 
 **Left, and needs a person**
 
-- [ ] **Use it in a browser.** Nothing in the client has been rendered for a human. It
-      typechecks, builds, and its data contracts are verified; that is not the same as
-      working
+- [ ] **Finish using it in a browser.** Sign-in, the catalog, the exercise library and the
+      start of a practice take have now been used by a person; five bugs came out of that.
+      Still unseen: every engraved stave, and what happens after a take is recorded
 - [ ] **Create a Clerk account** and put the key in `client/.env.local` — until then sign-in works against accounts stored in the browser, which do not follow you between devices
 - [ ] **One session at a microphone** — fills every `TBM` in this file
 
