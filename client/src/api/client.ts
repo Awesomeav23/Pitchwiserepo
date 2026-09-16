@@ -87,7 +87,21 @@ export const api = {
     post<QuizResult>(`/lessons/${lessonId}/quiz`, { answers }),
 
   postAttempt: (attempt: Record<string, unknown>) => post<Attempt>('/attempts', attempt),
-  attempts: (exerciseId?: string) =>
-    request<Page<Attempt>>(`/attempts${exerciseId ? `?exerciseId=${exerciseId}` : ''}`).then((p) => p.items),
+
+  /**
+   * One page of attempts, newest first. Returns the whole page rather than its
+   * items, because the cursor is how the next one is asked for — dropping it,
+   * as this used to, made everything past the first page unreachable.
+   */
+  attempts: (opts: { exerciseId?: string; cursor?: string; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (opts.exerciseId) q.set('exerciseId', opts.exerciseId);
+    if (opts.cursor) q.set('cursor', opts.cursor);
+    if (opts.limit) q.set('limit', String(opts.limit));
+    const query = q.toString();
+    return request<Page<Attempt>>(`/attempts${query ? `?${query}` : ''}`);
+  },
+
   attempt: (id: string) => request<Attempt>(`/attempts/${id}`),
+  deleteAttempt: (id: string) => request<void>(`/attempts/${id}`, { method: 'DELETE' }),
 };

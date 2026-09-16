@@ -9,6 +9,7 @@ import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
 import { LocalSignIn } from './screens/LocalSignIn';
 import { Onboarding } from './screens/Onboarding';
+import { History } from './screens/History';
 import { Practice } from './screens/Practice';
 import { Scorecard } from './screens/Scorecard';
 import { Tuner } from './screens/Tuner';
@@ -82,6 +83,10 @@ function AuthedApp({ onSignOut }: { onSignOut?: () => void } = {}) {
             onClick={() => navigate({ name: 'practice' })}>
             Practice
           </button>
+          <button className={route.name === 'history' ? 'on' : ''}
+            onClick={() => navigate({ name: 'history' })}>
+            History
+          </button>
           <button className={route.name === 'tuner' ? 'on' : ''}
             onClick={() => navigate({ name: 'tuner' })}>
             Tuner
@@ -117,6 +122,7 @@ function AuthedApp({ onSignOut }: { onSignOut?: () => void } = {}) {
 
       {/* Keyed so leaving a screen unmounts it, releasing the microphone rather
           than leaving two engines contending for it. */}
+      {route.name === 'history' && <History key="history" />}
       {route.name === 'practice' && <Practice key="practice" />}
       {route.name === 'tuner' && <Tuner key="tuner" />}
     </MeContext.Provider>

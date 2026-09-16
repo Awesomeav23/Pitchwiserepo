@@ -375,3 +375,38 @@ button.play:hover { border-color: var(--acc); }
 .catalog-note { margin: -4px 0 12px; }
 .card.mine { border-color: var(--acc); background: #1a1730; }
 .card.mine:hover { background: #211c3d; }
+
+/* ---- attempt history ---- */
+
+.attempt-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.attempt-list li { display: flex; align-items: stretch; gap: 5px; }
+
+.attempt-row {
+  flex: 1; display: grid; grid-template-columns: 46px 1fr auto; gap: 14px;
+  align-items: center; text-align: left; padding: 11px 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 11px;
+}
+.attempt-row:hover { border-color: var(--acc); }
+
+.attempt-score {
+  font-family: var(--mono); font-size: 19px; font-weight: 650; text-align: right;
+}
+.attempt-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.attempt-title { font-size: 13.5px; }
+.attempt-sub { font-size: 11.5px; color: var(--dim); font-family: var(--mono); }
+.attempt-when { font-size: 11.5px; color: var(--dim); font-family: var(--mono); white-space: nowrap; }
+
+.attempt-delete {
+  width: 34px; padding: 0; font-size: 17px; line-height: 1; color: #3a3a52;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 11px;
+}
+.attempt-delete:hover { color: var(--red); border-color: rgba(255, 93, 108, .45); }
+
+.load-more { margin-top: 12px; }
+
+.empty {
+  padding: 34px 26px; text-align: center;
+  background: var(--panel); border: 1px dashed var(--line); border-radius: 16px;
+}
+.empty p { margin: 0 0 10px; }
+.empty .stat { max-width: 44ch; margin: 0 auto 16px; }

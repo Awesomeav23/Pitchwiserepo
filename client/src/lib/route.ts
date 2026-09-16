@@ -17,6 +17,7 @@ export type Route =
   | { name: 'course'; slug: string }
   | { name: 'lesson'; id: string }
   | { name: 'attempt'; id: string }
+  | { name: 'history' }
   | { name: 'practice' }
   | { name: 'tuner' };
 
@@ -26,6 +27,7 @@ export function parseRoute(hash: string): Route {
     case 'course':   return path[1] ? { name: 'course', slug: path[1] } : { name: 'catalog' };
     case 'lesson':   return path[1] ? { name: 'lesson', id: path[1] } : { name: 'catalog' };
     case 'attempt':  return path[1] ? { name: 'attempt', id: path[1] } : { name: 'catalog' };
+    case 'history':  return { name: 'history' };
     case 'practice': return { name: 'practice' };
     case 'tuner':    return { name: 'tuner' };
     default:         return { name: 'catalog' };
@@ -37,6 +39,7 @@ export function hrefFor(route: Route): string {
     case 'course':   return `#/course/${route.slug}`;
     case 'lesson':   return `#/lesson/${route.id}`;
     case 'attempt':  return `#/attempt/${route.id}`;
+    case 'history':  return '#/history';
     case 'practice': return '#/practice';
     case 'tuner':    return '#/tuner';
     default:         return '#/';

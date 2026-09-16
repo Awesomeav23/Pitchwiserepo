@@ -8,7 +8,7 @@
 
 ## Progress
 
-**Documents:** 7 / 7 complete. **Client:** 12 of 15 screens, wired to the API.
+**Documents:** 7 / 7 complete. **Client:** 13 of 15 screens, wired to the API.
 **Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
@@ -198,3 +198,4 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | Fixed: pre-sign-in sessions were treated as signed in, so the app skipped the sign-in page entirely |
 | 2026-09-16 | Fixed: the sign-in form was not remembering the email, and had no `name`/`id` on its inputs, so no password manager would save or fill it |
 | 2026-09-16 | Fixed: the catalog ignored the instrument chosen at onboarding, while onboarding claimed it decided which course you land on. Your course now leads the catalog; the other eleven stay browsable |
+| 2026-09-16 | Attempt history built (US-07) — paginated, filterable by exercise, deletable. `api.attempts` was discarding `nextCursor`, making everything past the first page unreachable |
