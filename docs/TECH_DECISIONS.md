@@ -3,7 +3,7 @@
 **Project:** Pitchwise
 **Format:** Architecture Decision Records — Context → Decision → Consequences
 **Status:** Draft v1.0
-**Last updated:** 2026-09-15
+**Last updated:** 2026-09-16
 
 Each record is numbered and dated. Records are append-only: if a decision is reversed,
 mark the original **Superseded** and write a new record rather than editing history.
@@ -512,6 +512,61 @@ to host, which is the cost the content format was chosen to avoid.
 
 ---
 
+## ADR-016 — Clerk, with a development fallback
+
+**Status:** Accepted · 2026-09-16
+*(Resolves the first open item in `API_SPEC.md` §14, left open by ADR-006.)*
+
+**Context**
+ADR-006 decided to use a managed auth provider and deliberately did not pick one,
+because nothing downstream depended on which. That held: the server verifies any
+RS256 JWT against a configured JWKS URL, issuer and audience, so the provider is
+three environment variables rather than a code path.
+
+Choosing became necessary to build sign-in (US-01). The two candidates were Clerk
+and Auth0. Both have a free tier large enough that this project will never reach
+it. The difference that mattered is the client: Clerk ships React components that
+own the whole flow — sign-in, sign-up, verification, reset, account menu — while
+Auth0 expects either its hosted page or a login UI built against its SDK.
+
+A second problem is more specific to this project. Anyone cloning the repo has no
+provider account, and requiring one to run the app at all would make the first
+five minutes of contributing an account signup.
+
+**Decision**
+Clerk. The sign-in screen is Clerk's `<SignIn>` component inside a page of ours;
+no form, no password handling, no reset flow of our own.
+
+Auth selection is **optional at runtime**. `VITE_CLERK_PUBLISHABLE_KEY` decides:
+set, the app is behind Clerk; unset, it runs on the development session token the
+server accepts only when `AUTH_DEV_MODE` is on. Everything above
+`api/session.ts` is identical either way.
+
+The Clerk SDK is code-split, so a build without a key does not download it.
+
+**Consequences**
+- Sign-in, sign-up, verification, password reset and the account menu are all
+  provider-owned. None of them is code in this repo, which is what ADR-006 was
+  for.
+- Adding Clerk could not break the working state, because the fallback is the
+  behaviour that already existed. That is the reason it is a runtime switch and
+  not a replacement.
+- The main bundle grew by nothing: Clerk is 92 kB in its own chunk, fetched only
+  when a key is configured.
+- **Clerk's session token has no `email` claim by default**, and `API_SPEC.md`
+  §3.1 provisions the user row from it. A custom claim is required —
+  `"email": "{{user.primary_email_address}}"` under Configure → Sessions. The
+  server's 401 names this specific fix rather than returning a bare
+  `unauthenticated`, because it is the first thing that goes wrong on a new
+  setup and the generic message sends people hunting through key configuration.
+- Switching to Auth0 later remains three environment variables on the server and
+  one component on the client. The seam ADR-006 created is not spent by this.
+- Trade-off accepted: the development fallback is a second identity path that
+  exists only to be unused in production. It is gated on `NODE_ENV` at server
+  startup, so it cannot be the one that ships.
+
+---
+
 ## Decision Index
 
 | ID | Decision | Status |
@@ -531,3 +586,4 @@ to host, which is the cost the content format was chosen to avoid.
 | ADR-013 | `NoteSource` abstraction, Web MIDI deferred | Accepted |
 | ADR-014 | Metronome on the capture AudioContext, not Tone.js | Accepted |
 | ADR-015 | Sheet music is core; one source for notation, audio and scoring | Accepted |
+| ADR-016 | Clerk, with a development fallback | Accepted |

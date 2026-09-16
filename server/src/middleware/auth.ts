@@ -50,8 +50,16 @@ async function verify(token: string): Promise<Claims> {
       issuer: config.auth.issuer || undefined,
       audience: config.auth.audience || undefined,
     });
-    if (!payload.sub || typeof payload.email !== 'string') {
-      throw new ApiError('unauthenticated', 'Token is missing sub or email');
+    if (!payload.sub) throw new ApiError('unauthenticated', 'Token is missing a subject claim');
+    if (typeof payload.email !== 'string') {
+      // Clerk's default session token carries sub but not email, and §3.1 needs
+      // email to provision the row. Naming the fix here rather than returning a
+      // bare 401 — this is the first thing that goes wrong on a new setup, and
+      // "unauthenticated" would send someone hunting through key configuration
+      // instead of the one claim that is actually missing.
+      throw new ApiError('unauthenticated',
+        'Token has no email claim. In Clerk, edit the session token under ' +
+        'Configure → Sessions and add: "email": "{{user.primary_email_address}}"');
     }
     return { sub: payload.sub, email: payload.email, name: typeof payload.name === 'string' ? payload.name : undefined };
   } catch (err) {

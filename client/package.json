@@ -12,6 +12,7 @@
     "verify": "esbuild src/practice/verify.ts --bundle --format=esm --platform=node --outfile=dist/verify.mjs --log-level=warning && node dist/verify.mjs"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.61.9",
     "pitchy": "^4.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

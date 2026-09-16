@@ -473,8 +473,10 @@ Listed so their absence is legible as a decision rather than an oversight.
 
 ## 14. Open Items
 
-- [ ] Provider choice, Clerk or Auth0 (ADR-006 leaves it open). Changes the JWKS URL and
-      claim names in §3.1, nothing else in this document
+- [x] ~~Provider choice, Clerk or Auth0~~ **Resolved: Clerk** (ADR-016). Verification was
+      already generic, so this changed the JWKS URL and issuer and nothing else in this
+      document. Clerk's session token needs a custom `email` claim for §3.1 to provision
+      a user; the server's 401 says so explicitly
 - [ ] `COVERAGE_THRESHOLD` server config value — tracked in `DATA_MODEL.md` §10
 - [ ] Whether `GET /exercises` should default to `fits=<primary instrument>` rather than
       returning everything. Better default, but hides content; decide after the library

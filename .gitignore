@@ -28,3 +28,6 @@ client/public/pitch-processor.js
 # server
 server/.env
 server/dist/
+
+# client
+client/.env.local

@@ -1,18 +1,48 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { api } from './api/client';
 import { useApi } from './api/useApi';
 import { MeContext, primaryOf } from './api/useMe';
+import { devSession, signOutDev, usingClerk } from './api/session';
 import { Loading, Failed } from './components/Async';
 import { Catalog } from './screens/Catalog';
 import { CourseView } from './screens/CourseView';
 import { LessonView } from './screens/LessonView';
+import { MockSignIn } from './screens/MockSignIn';
 import { Onboarding } from './screens/Onboarding';
 import { Practice } from './screens/Practice';
 import { Scorecard } from './screens/Scorecard';
 import { Tuner } from './screens/Tuner';
 import { navigate, useRoute } from './lib/route';
 
+// Split out so the SDK is fetched only when a publishable key is configured.
+const ClerkShell = lazy(() => import('./ClerkShell'));
+const AccountMenu = lazy(() => import('./ClerkShell').then((m) => ({ default: m.UserButton })));
+
+/**
+ * Chooses how the user is identified, and nothing below this cares which.
+ *
+ * With a Clerk key the app is behind sign-in; without one it runs on the
+ * development session the server accepts only in development. The fallback
+ * exists so that cloning the repo and running it needs no provider account
+ * (ADR-016).
+ */
 export default function App() {
+  // Re-read on sign-in so the tree swaps without a reload.
+  const [devUser, setDevUser] = useState(() => devSession());
+
+  if (!usingClerk()) {
+    if (!devUser) return <MockSignIn onSignedIn={() => setDevUser(devSession())} />;
+    return <AuthedApp key={devUser.sub} onSignOut={() => { signOutDev(); setDevUser(null); }} />;
+  }
+
+  return (
+    <Suspense fallback={<Loading what="sign-in" />}>
+      <ClerkShell><AuthedApp /></ClerkShell>
+    </Suspense>
+  );
+}
+
+function AuthedApp({ onSignOut }: { onSignOut?: () => void } = {}) {
   const route = useRoute();
   const meState = useApi(() => api.me(), []);
 
@@ -56,6 +86,15 @@ export default function App() {
             onClick={() => navigate({ name: 'tuner' })}>
             Tuner
           </button>
+        </div>
+        <div className="nav-user">
+          {usingClerk()
+            ? <Suspense fallback={null}><AccountMenu /></Suspense>
+            : onSignOut && (
+                <button className="link" onClick={onSignOut}>
+                  {meState.data?.email} · sign out
+                </button>
+              )}
         </div>
       </nav>
 

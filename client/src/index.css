@@ -346,3 +346,27 @@ button.play:hover { border-color: var(--acc); }
 .mic-trouble ol { margin: 0 0 16px; padding-left: 20px; font-size: 13.5px; }
 .mic-trouble li { margin-bottom: 5px; }
 .mic-trouble-actions { display: flex; align-items: center; gap: 16px; }
+
+/* ---- sign-in ---- */
+
+.nav { display: flex; align-items: center; justify-content: space-between; }
+.nav-user { display: flex; align-items: center; }
+
+.signin-box { margin: 22px 0; display: flex; justify-content: center; }
+.signin .lede { max-width: 52ch; }
+
+/* ---- placeholder sign-in form ---- */
+
+.signin-form { display: grid; gap: 14px; max-width: 340px; margin: 22px 0; }
+.signin-form label {
+  display: grid; gap: 6px; color: var(--dim); font-size: 12.5px;
+}
+.signin-form input {
+  background: var(--sunk); border: 1px solid var(--line); border-radius: 10px;
+  color: var(--tx); padding: 10px 13px; font: inherit; font-size: 13.5px;
+}
+.signin-form input:focus { outline: none; border-color: var(--acc); }
+.signin-form button { justify-self: start; padding: 10px 22px; }
+.optional { color: #55556a; font-size: 11px; }
+
+.nav-user .link { font-size: 12px; }

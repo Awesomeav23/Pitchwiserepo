@@ -8,7 +8,7 @@
 
 ## Progress
 
-**Documents:** 7 / 7 complete. **Client:** 11 of 15 screens, wired to the API.
+**Documents:** 7 / 7 complete. **Client:** 12 of 15 screens, wired to the API.
 **Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
@@ -191,3 +191,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-15 | Server built: Postgres schema, seed, auth, and every endpoint in API_SPEC §§5–8, §12, §15. 55 end-to-end checks pass |
 | 2026-09-15 | Client wired to the API; progress moved off localStorage to server-evaluated. Hash routing added |
 | 2026-09-15 | Scorecard (US-06), onboarding (US-01) and the microphone-denied states (§5.1) built |
+| 2026-09-16 | ADR-016: Clerk chosen, resolving API_SPEC §14's first open item. Sign-in built, code-split, optional at runtime |
+| 2026-09-16 | Placeholder sign-in form for use before a Clerk key exists — checks nothing, and says so on the page |

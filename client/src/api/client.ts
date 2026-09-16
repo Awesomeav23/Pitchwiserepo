@@ -5,7 +5,7 @@
  * things that change — the base URL, how a token is obtained, how an error
  * becomes a message — change in one file.
  */
-import { token } from './session';
+import { getToken } from './session';
 import type {
   ApiExercise, ApiInstrument, Attempt, CourseCard, CourseOutline, LessonDetail,
   LessonProgress, Me, Page, QuizResult,
@@ -30,12 +30,13 @@ export class ApiError extends Error {
 export class NetworkError extends Error {}
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const bearer = await getToken();
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {
       ...init,
       headers: {
-        Authorization: `Bearer ${token()}`,
+        Authorization: `Bearer ${bearer}`,
         ...(init.body ? { 'Content-Type': 'application/json' } : {}),
         ...init.headers,
       },
