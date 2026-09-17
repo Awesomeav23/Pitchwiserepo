@@ -94,6 +94,8 @@ export interface RenderedScore {
   /** Maps a sequence note index to its rendered SVG element, for highlighting. */
   elementFor: Map<number, SVGElement>;
   heightPx: number;
+  /** What the staff actually needed, which may be less than the space offered. */
+  widthPx: number;
 }
 
 /**
@@ -137,19 +139,30 @@ export function renderScore(
   const lines: Cell[][][] = [];
   for (let i = 0; i < bars.length; i += barsPerLine) lines.push(bars.slice(i, i + barsPerLine));
 
-  const LINE_HEIGHT = 110;
-  const PAD_TOP = 18;
-  const heightPx = PAD_TOP + lines.length * LINE_HEIGHT + 10;
+  // VexFlow reserves 4 line-spaces (40px) above and below the staff for ledger
+  // lines and stems. Three is enough for this library — nothing reaches further
+  // than one ledger line — and it stops a five-line staff sitting in a box more
+  // than twice its height.
+  const SPACE_LN = 3;
+  const STAVE_H = SPACE_LN * 10 * 2 + 40;   // space above + 4 line gaps + space below
+  const SYSTEM_GAP = 14;
+  const PAD_TOP = 8;
+  const heightPx = PAD_TOP * 2 + lines.length * STAVE_H + (lines.length - 1) * SYSTEM_GAP;
+
+  // A short example does not need the full column. One note stretched across
+  // 1100px of staff reads as a mistake rather than as an example.
+  const noteCount = cells.filter((c) => c.index !== null).length;
+  const width = Math.min(opts.width, 150 + noteCount * 78);
 
   const renderer = new Renderer(host, Renderer.Backends.SVG);
-  renderer.resize(opts.width, heightPx);
+  renderer.resize(width, heightPx);
   const ctx = renderer.getContext();
 
   const elementFor = new Map<number, SVGElement>();
-  const usableWidth = opts.width - 2;
+  const usableWidth = width - 2;
 
   lines.forEach((line, lineIndex) => {
-    const y = PAD_TOP + lineIndex * LINE_HEIGHT;
+    const y = PAD_TOP + lineIndex * (STAVE_H + SYSTEM_GAP);
     // The first bar of the first line carries the clef and time signature, so
     // it needs more room than the others or its notes crowd the signature.
     const totalBars = line.length;
@@ -157,19 +170,26 @@ export function renderScore(
 
     line.forEach((barCells, barIndex) => {
       const isFirst = lineIndex === 0 && barIndex === 0;
+      // A time signature on a one-note example answers a question nobody asked;
+      // the clef stays, because on these it is the point.
+      const withMeter = isFirst && noteCount > 1;
       const extra = isFirst ? 46 : 0;
       const barWidth = Math.floor((usableWidth - (lineIndex === 0 ? 46 : 0)) / totalBars) + extra;
 
-      const stave = new Stave(x, y, barWidth);
+      const stave = new Stave(x, y, barWidth, {
+        spaceAboveStaffLn: SPACE_LN,
+        spaceBelowStaffLn: SPACE_LN,
+      });
       if (isFirst) {
-        stave.addClef(clef).addTimeSignature(timeSignature);
+        stave.addClef(clef);
+        if (withMeter) stave.addTimeSignature(timeSignature);
       }
       stave.setContext(ctx).draw();
 
       const voice = new Voice({ numBeats: beatsPerBar, beatValue: 4 });
       voice.setStrict(false);
       voice.addTickables(barCells.map((c) => c.note));
-      new Formatter().joinVoices([voice]).format([voice], barWidth - (isFirst ? 62 : 16));
+      new Formatter().joinVoices([voice]).format([voice], barWidth - (isFirst ? (withMeter ? 62 : 44) : 16));
       voice.draw(ctx, stave);
 
       for (const cell of barCells) {
@@ -182,5 +202,5 @@ export function renderScore(
     });
   });
 
-  return { elementFor, heightPx };
+  return { elementFor, heightPx, widthPx: width };
 }

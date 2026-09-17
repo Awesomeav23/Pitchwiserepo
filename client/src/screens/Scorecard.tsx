@@ -53,7 +53,7 @@ export function Scorecard({ attemptId, onBack }: { attemptId: string; onBack: ()
       </header>
 
       <section className="score-head">
-        <div className="score">
+        <div className="score-value">
           <strong style={{ color: scoreColor(a.overallScore) }}>{a.overallScore}</strong>
           <span>/ 100</span>
         </div>

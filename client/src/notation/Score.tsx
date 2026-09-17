@@ -59,10 +59,16 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
     void loadRenderer().then(({ renderScore }) => {
       if (cancelled) return;
       const draw = () => {
-        const width = host.clientWidth;
-        if (width < 40) return;
+        // Measured from the parent, not from the host: the host's width is set
+        // below to whatever the staff needed, so measuring it would feed last
+        // render's answer back in and ratchet the staff narrower each time.
+        const available = host.parentElement?.clientWidth ?? 0;
+        if (available < 40) return;
         try {
-          const { elementFor } = renderScore(host, sequence, { bpm, clef, timeSignature, width });
+          host.style.width = '100%';
+          const { elementFor, widthPx } = renderScore(host, sequence,
+            { bpm, clef, timeSignature, width: available });
+          host.style.width = `${widthPx}px`;
           // Re-engraving replaces every element, so the old map points at nodes
           // no longer in the document. Anything highlighted is gone with them.
           elementsRef.current = elementFor;
@@ -73,8 +79,9 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
         }
       };
       draw();
+      // Observing the parent for the same reason: the host resizes itself.
       observer = new ResizeObserver(draw);
-      observer.observe(host);
+      if (host.parentElement) observer.observe(host.parentElement);
     }).catch((err: unknown) => {
       if (!cancelled) setError(err instanceof Error ? err.message : String(err));
     });

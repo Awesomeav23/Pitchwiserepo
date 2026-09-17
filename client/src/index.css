@@ -107,7 +107,10 @@ select {
 
 /* ---- app shell ---- */
 
-.nav { max-width: 880px; margin: 0 auto; padding: 18px 20px 0; }
+.nav {
+  max-width: 880px; margin: 0 auto; padding: 18px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
 
 /* ---- practice take ---- */
 
@@ -131,9 +134,13 @@ select {
   background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
 }
 
-.score { display: flex; align-items: baseline; gap: 8px; }
-.score strong { font-size: 44px; font-weight: 700; letter-spacing: -.02em; }
-.score span { color: var(--dim); font-size: 13px; }
+/* The attempt's numeric score. Named apart from .score, which is the engraved
+   notation — the two collided, and because this rule sets display:flex it made
+   every staff's container a flex item that shrank to zero width, so no staff was
+   ever drawn anywhere in the app. */
+.score-value { display: flex; align-items: baseline; gap: 8px; }
+.score-value strong { font-size: 44px; font-weight: 700; letter-spacing: -.02em; }
+.score-value span { color: var(--dim); font-size: 13px; }
 
 .score-detail { color: var(--dim); font-size: 13px; margin-top: 2px; }
 
@@ -242,6 +249,11 @@ select {
 .score-sheet {
   background: #f7f7fa; border: 1px solid var(--line); border-radius: 12px;
   padding: 4px 6px; overflow: hidden;
+  /* Width is set by Score.tsx after drawing, to the width the staff actually
+     needed. It must NOT be fit-content here: this element is empty until the
+     staff is drawn into it, and the renderer measures its parent — making it
+     shrink-to-fit would measure nothing. */
+  width: 100%;
 }
 .score figcaption {
   display: flex; align-items: center; gap: 12px;
@@ -349,7 +361,6 @@ button.play:hover { border-color: var(--acc); }
 
 /* ---- sign-in ---- */
 
-.nav { display: flex; align-items: center; justify-content: space-between; }
 .nav-user { display: flex; align-items: center; }
 
 .signin-box { margin: 22px 0; display: flex; justify-content: center; }

@@ -429,7 +429,7 @@ function Summary({ result, exercise }: { result: TakeResult; exercise: Exercise 
   const { summary, results } = result;
   return (
     <section className="summary">
-      <div className="score">
+      <div className="score-value">
         <strong>{summary.overallScore}</strong><span>/ 100</span>
       </div>
       <div className="score-detail">
