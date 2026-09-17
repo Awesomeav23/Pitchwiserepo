@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 178" role="img" aria-label="A minor: first fret of B, second fret of D and G, strum from the A string down" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 322" role="img" aria-label="A minor: first fret of B, second fret of D and G, strum from the A string down" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
 <title>A minor: first fret of B, second fret of D and G, strum from the A string down</title>
+<g transform="scale(1.8103)">
 <rect x="54" y="11" width="10" height="132" fill="#e6e6f0"/>
 <line x1="100" y1="11" x2="100" y2="143" stroke="#8b8b9f" stroke-width="2"/>
 <text x="77.0" y="164" font-size="11" fill="#8b8b9f" text-anchor="middle">1</text>
@@ -27,4 +28,5 @@
 <text x="123.0" y="70" font-size="11" fill="#fff" text-anchor="middle">3</text>
 <text x="22" y="136" font-size="12" fill="#8b8b9f" text-anchor="middle">×</text>
 <text x="54" y="2" font-size="11" fill="#8b8b9f">nut</text>
+</g>
 </svg>
