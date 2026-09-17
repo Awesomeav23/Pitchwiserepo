@@ -215,4 +215,5 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-17 | Notation stage 3 — during a take the staff shows the note being played, coloured by how the last 180 ms compares with the target. Only the recent tail, so a note corrected mid-way reads as corrected |
 | 2026-09-17 | Microphone device picker on the tuner and practice screens, shown only when more than one input exists. Labels are blank until permission is granted, so it falls back to "Microphone 1, 2" and fills in after a first take |
 | 2026-09-17 | Fixed: `setLive` was captured by a callback declared above the `useState` that creates it — works only while nothing calls it during that render. Caught by the linter, not by the typechecker |
+| 2026-09-17 | `scripts/check-changelog.mjs` added — flags any day with commits and no change log entry. Written after two days of work shipped unlogged and were found by reading back |
 | 2026-09-17 | **Every buildable item is now built.** The only remaining code item is onset suppression, which is blocked on a measurement. What is left needs a microphone, three accounts, or someone looking at a screen |

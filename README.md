@@ -206,6 +206,8 @@ server exists.
 cd client && npm install && npm run dev     # the app, on :5173
 npm run verify                              # 20 headless checks on take scoring
 
+node scripts/check-changelog.mjs             # every day of work reached the change log
+
 docker compose up -d                        # Postgres on :5433
 cd server && npm install
 npm run migrate && npm run seed             # schema, then reference data
