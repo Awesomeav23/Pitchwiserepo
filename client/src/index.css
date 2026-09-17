@@ -75,11 +75,15 @@ select {
   display: flex; align-items: baseline; gap: 22px;
   margin: 26px 0 4px; min-height: 84px;
 }
-.note {
+/* The tuner's large note readout. Named for its screen, not "note", which
+   collided with the callout tone of the same name — a callout renders as
+   class="callout note", and inherited this monospace family because .callout
+   sets a size but no family. */
+.tuner-note {
   font-family: var(--mono); font-size: 76px; line-height: 1; font-weight: 600;
   letter-spacing: -.02em; color: var(--dim); font-variant-numeric: tabular-nums;
 }
-.cents {
+.tuner-cents {
   font-family: var(--mono); font-size: 30px; font-variant-numeric: tabular-nums; color: var(--dim);
 }
 

@@ -137,9 +137,13 @@ learning.get('/courses/:idOrSlug', wrap<AuthedRequest>(async (req, res) => {
 
 learning.get('/lessons/:idOrSlug', wrap<AuthedRequest>(async (req, res) => {
   const key = String(req.params.idOrSlug);
+  // The course's instrument comes back with the lesson: a take inside a guitar
+  // lesson must be analysed as a guitar, whatever the learner's own profile
+  // says, or it is gated and range-clamped for the wrong instrument.
   const { rows } = await pool.query(`
-    SELECT l.*, m.course_id FROM lessons l
+    SELECT l.*, m.course_id, c.instrument_id FROM lessons l
       JOIN modules m ON m.id = l.module_id
+      JOIN courses c ON c.id = m.course_id
      WHERE ${UUID.test(key) ? 'l.id = $1' : 'l.slug = $1'}`, [key]);
   if (rows.length === 0) throw notFound();
   const l = rows[0];
@@ -177,6 +181,7 @@ learning.get('/lessons/:idOrSlug', wrap<AuthedRequest>(async (req, res) => {
 
   res.json({
     id: l.id, slug: l.slug, title: l.title, kind: l.kind,
+    instrumentId: l.instrument_id,
     estimatedMinutes: l.estimated_minutes, completionRule: l.completion_rule,
     blocks: l.body, quiz: l.quiz ? stripAnswers(l.quiz) : null, exercise,
     progress: progress.rows[0]

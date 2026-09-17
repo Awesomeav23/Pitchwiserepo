@@ -83,6 +83,7 @@ export function LessonView({ lessonId, onBack }: { lessonId: string; onBack: () 
           <Practice
             exercise={toExercise(data.exercise)}
             lessonId={data.id}
+            instrumentId={data.instrumentId}
             onResult={onAttempt}
             onLive={setLive}
             embedded

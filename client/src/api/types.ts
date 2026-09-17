@@ -117,6 +117,8 @@ export interface LessonDetail {
   slug: string;
   title: string;
   kind: LessonKind;
+  /** The course's instrument — what a take in this lesson should be analysed as. */
+  instrumentId: string;
   estimatedMinutes: number;
   completionRule: CompletionRule;
   blocks: Block[] | null;

@@ -209,8 +209,8 @@ export function Tuner() {
       )}
 
       <section className="readout">
-        <div className="note" ref={noteRef}>—</div>
-        <div className="cents" ref={centsRef} />
+        <div className="tuner-note" ref={noteRef}>—</div>
+        <div className="tuner-cents" ref={centsRef} />
       </section>
 
       <div className="needle-track">

@@ -63,6 +63,10 @@ export interface PracticeProps {
   onResult?: (summary: AttemptSummary, attempt?: Attempt) => void;
   /** Drop the heading, for use inside a lesson that has its own. */
   embedded?: boolean;
+  /** Analyse as this instrument. A lesson supplies its course's instrument, so a
+   *  guitar lesson is gated and range-clamped as a guitar whatever the learner's
+   *  own profile says. */
+  instrumentId?: string;
   /**
    * Called as a take runs, with the note being sung and how it is going.
    * Stage 3 of the notation plan: a lesson uses this to light up the staff.
@@ -124,7 +128,7 @@ const fromApi = (e: ApiExercise): Exercise => ({
 });
 
 function PracticeTake({
-  exercise, lessonId, onResult, embedded, library, onSelectSlug, onLive,
+  exercise, lessonId, onResult, embedded, library, onSelectSlug, onLive, instrumentId,
 }: PracticeProps & {
   exercise: Exercise;
   library: ApiExerciseSummary[];
@@ -133,7 +137,7 @@ function PracticeTake({
   const { primaryInstrumentId } = useMe();
   // Defaults to what the user told onboarding they play, rather than to a voice
   // type they may not be.
-  const [profileId, setProfileId] = useState(primaryInstrumentId ?? 'voice_tenor');
+  const [profileId, setProfileId] = useState(instrumentId ?? primaryInstrumentId ?? 'voice_tenor');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [micError, setMicError] = useState<unknown>(null);
   const { inputs } = useAudioInputs();
