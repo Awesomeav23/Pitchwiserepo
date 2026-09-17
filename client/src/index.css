@@ -459,3 +459,7 @@ button.play:hover { border-color: var(--acc); }
 /* Sounding but nothing detected yet — the note is next, not wrong. */
 .vf-live:not(.vf-green):not(.vf-amber):not(.vf-red) path,
 .vf-live:not(.vf-green):not(.vf-amber):not(.vf-red) rect { fill: var(--dim) !important; stroke: var(--dim) !important; }
+
+/* The instrument a lesson dictates — stated, not offered. */
+.fixed-instrument { font-size: 13px; color: var(--tx); }
+.fixed-instrument .range { color: var(--dim); font-family: var(--mono); font-size: 11.5px; }

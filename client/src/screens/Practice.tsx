@@ -363,14 +363,24 @@ function PracticeTake({
           </label>
         )}
 
-        <label>
-          Instrument
-          <select value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={busy}>
-            {INSTRUMENT_PROFILES.map((p) => (
-              <option key={p.id} value={p.id}>{p.displayName} ({p.nominalRange})</option>
-            ))}
-          </select>
-        </label>
+        {/* A lesson belongs to a course, and the course decides the instrument.
+            Offering a picker there invites a choice that makes the lesson's
+            gating, range clamp and scoring wrong for what is being played. It
+            is a choice only on the standalone practice screen. */}
+        {instrumentId ? (
+          <span className="fixed-instrument">
+            {profile.displayName} <span className="range">({profile.nominalRange})</span>
+          </span>
+        ) : (
+          <label>
+            Instrument
+            <select value={profileId} onChange={(e) => setProfileId(e.target.value)} disabled={busy}>
+              {INSTRUMENT_PROFILES.map((p) => (
+                <option key={p.id} value={p.id}>{p.displayName} ({p.nominalRange})</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {busy
           ? <button className="primary" onClick={abort}>Stop</button>
