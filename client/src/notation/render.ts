@@ -165,16 +165,26 @@ export function renderScore(
     const y = PAD_TOP + lineIndex * (STAVE_H + SYSTEM_GAP);
     // The first bar of the first line carries the clef and time signature, so
     // it needs more room than the others or its notes crowd the signature.
-    const totalBars = line.length;
     let x = 1;
+
+    // Width in proportion to what each bar holds, not split evenly. A final
+    // bar with one held note was getting the same width as a bar of four,
+    // which crammed that note against the barline and left most of its bar
+    // empty.
+    const lineBeats = line.map((bar) => bar.reduce((sum, c) => sum + c.beats, 0));
+    const totalLineBeats = lineBeats.reduce((a, b) => a + b, 0) || 1;
+    const signatureRoom = lineIndex === 0 ? 46 : 0;
+    const shareable = usableWidth - signatureRoom;
 
     line.forEach((barCells, barIndex) => {
       const isFirst = lineIndex === 0 && barIndex === 0;
       // A time signature on a one-note example answers a question nobody asked;
       // the clef stays, because on these it is the point.
       const withMeter = isFirst && noteCount > 1;
-      const extra = isFirst ? 46 : 0;
-      const barWidth = Math.floor((usableWidth - (lineIndex === 0 ? 46 : 0)) / totalBars) + extra;
+      const extra = isFirst ? signatureRoom : 0;
+      // A floor, so a single short note still gets a readable bar.
+      const share = Math.max(0.18, lineBeats[barIndex] / totalLineBeats);
+      const barWidth = Math.floor(shareable * share) + extra;
 
       const stave = new Stave(x, y, barWidth, {
         spaceAboveStaffLn: SPACE_LN,
