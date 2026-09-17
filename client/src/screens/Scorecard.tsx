@@ -131,7 +131,19 @@ function DeviationChart({ results }: { results: NoteResult[] }) {
         {results.map((r, i) => {
           const cx = i * step + step / 2;
           if (r.centsOff == null) {
-            return <circle key={r.index} cx={cx} cy={mid} r="1.1" fill={BAND_COLOR.missed} />;
+            // A missed note has no deviation, so it cannot go on the deviation
+            // axis. Drawing it at zero — which is what this did — puts it in
+            // the middle of the on-pitch band and reads as a perfect note,
+            // which is the opposite of what happened. A column instead: this
+            // slot produced no reading at all.
+            return (
+              <g key={r.index}>
+                <rect x={cx - step * 0.28} y="0" width={step * 0.56} height={H}
+                      fill={BAND_COLOR.missed} opacity="0.16" />
+                <text x={cx} y={H - 1.5} fontSize="4" fill={BAND_COLOR.missed}
+                      textAnchor="middle">missed</text>
+              </g>
+            );
           }
           const top = Math.min(mid, y(r.centsOff));
           return (
@@ -145,7 +157,9 @@ function DeviationChart({ results }: { results: NoteResult[] }) {
       </svg>
       <figcaption>
         <span>sharp ↑</span>
-        <span>±10¢ on pitch</span>
+        <span>{results.every((r) => r.centsOff == null)
+          ? 'nothing was heard'
+          : '±10¢ on pitch'}</span>
         <span>↓ flat</span>
       </figcaption>
     </figure>
