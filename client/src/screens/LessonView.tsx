@@ -68,19 +68,18 @@ export function LessonView({ lessonId, onBack }: { lessonId: string; onBack: () 
 
       {actionError && <p className="alert error">{actionError}</p>}
 
-      {data.blocks?.map((block, i) => <BlockView key={i} block={block} />)}
+      {data.blocks?.map((block, i) => (
+        <BlockView key={i} block={block} live={block.kind === 'score' ? live : undefined} />
+      ))}
 
       {data.kind === 'exercise' && data.exercise && (
         <section className="lesson-task">
           <h2 className="section-head">Play it</h2>
-          <Score
-            sequence={data.exercise.noteSequence}
-            bpm={data.exercise.tempoBpm}
-            timeSignature={data.exercise.timeSignature}
-            playable={false}
-            live={live}
-            caption="The note you are on lights up as you play"
-          />
+          {/* No staff here. The lesson already shows one above, engraved at
+              written pitch with the right clef; this drew a second from the
+              exercise's *sounding* pitch and no clef, which for a guitar is an
+              octave low and for a cello is the wrong clef entirely. The staff
+              above lights up instead. */}
           <Practice
             exercise={toExercise(data.exercise)}
             lessonId={data.id}

@@ -230,18 +230,18 @@ select {
   border: 1px solid var(--line); border-left-width: 3px; border-radius: 10px;
   background: var(--panel); font-size: 13.5px;
 }
-.callout strong {
+.callout-label {
   display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em;
-  margin-bottom: 6px;
+  font-weight: 650; margin-bottom: 6px;
 }
 .callout p { margin: 0 0 8px; }
 .callout p:last-child { margin: 0; }
 .callout.note { border-left-color: var(--acc); }
-.callout.note strong { color: var(--acc); }
+.callout.note .callout-label { color: var(--acc); }
 .callout.warning { border-left-color: var(--amb); }
-.callout.warning strong { color: var(--amb); }
+.callout.warning .callout-label { color: var(--amb); }
 .callout.limitation { border-left-color: var(--red); }
-.callout.limitation strong { color: var(--red); }
+.callout.limitation .callout-label { color: var(--red); }
 
 /* ---- notation ---- */
 

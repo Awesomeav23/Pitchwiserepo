@@ -11,7 +11,12 @@ const CALLOUT_LABEL: Record<string, string> = {
   limitation: 'Not graded',
 };
 
-export function BlockView({ block }: { block: Block }) {
+export function BlockView({ block, live }: {
+  block: Block;
+  /** Passed through to a score block so the staff a learner is reading is the
+   *  one that lights up during a take. */
+  live?: { index: number | null; band: 'green' | 'amber' | 'red' | null };
+}) {
   switch (block.kind) {
     case 'prose':
       return <div className="prose"><Markdown md={block.md} /></div>;
@@ -26,6 +31,7 @@ export function BlockView({ block }: { block: Block }) {
           timeSignature={block.timeSignature}
           caption={block.caption}
           playable={block.playable !== false}
+          live={live}
         />
       );
     }
@@ -36,7 +42,10 @@ export function BlockView({ block }: { block: Block }) {
     case 'callout':
       return (
         <aside className={`callout ${block.tone}`}>
-          <strong>{CALLOUT_LABEL[block.tone]}</strong>
+          {/* Its own class, not a bare <strong>: the body is Markdown and may
+              contain bold of its own, which was being turned into a second
+              uppercase label mid-sentence. */}
+          <span className="callout-label">{CALLOUT_LABEL[block.tone]}</span>
           <Markdown md={block.md} />
         </aside>
       );
