@@ -14,8 +14,9 @@ note; the courses tell you which note to go for and why.
 
 ## Where this is
 
-The product is built and the plumbing is proven. What is missing is that **nobody has
-used it yet**, and it still only runs on one laptop.
+Everything buildable is built. What is missing is that **most of it has never been
+looked at**, none of its performance numbers have been measured, and it still only runs
+on one laptop.
 
 **Done**
 
@@ -31,20 +32,33 @@ used it yet**, and it still only runs on one laptop.
       microphone-denied, tuner
 - [x] **Backend complete** — Postgres, full schema, seed, auth, every endpoint in `API_SPEC.md`
 - [x] Progress decided by the server, not the browser
+- [x] 11 diagrams, the playback cursor, and live feedback on the staff during a take
 - [x] 78 automated checks — 58 API, 20 scoring
-
-**Left, and needs a person**
-
-- [ ] **Finish using it in a browser.** Sign-in, the catalog, the exercise library and the
-      start of a practice take have now been used by a person; five bugs came out of that.
-      Still unseen: every engraved stave, and what happens after a take is recorded
-- [ ] **Create a Clerk account** and put the key in `client/.env.local` — until then sign-in works against accounts stored in the browser, which do not follow you between devices
-- [ ] **One session at a microphone** — fills every `TBM` in this file
 
 **Left, and is code**
 
-- [ ] Nothing — every screen and feature on the list is built
-- [ ] Deployment — nothing is hosted anywhere
+- [ ] Onset suppression — the hook exists and is set to `0`, waiting on a measured
+      frame count. Nothing else on this page is unbuilt
+
+**Left, and needs someone to look**
+
+- [ ] **Finish using it in a browser.** Sign-in, the catalog, the exercise library and the
+      start of a practice take have been used by a person; five bugs came out of that.
+      Still unseen: every engraved stave, all 11 diagrams, the playback cursor, the live
+      staff colouring, the quiz, history, the scorecard, and anything below desktop width
+
+**Left, and needs a microphone**
+
+- [ ] **One session in a quiet room**, with any real instrument. Closes five outstanding
+      measurements, fills every `TBM` in this file and 24 in `AUDIO_PIPELINE.md`, and
+      settles three of the five open questions in `MANIFEST.md`
+
+**Left, and needs an account**
+
+- [ ] **Neon, Clerk and Vercel** → deployment. Nothing is hosted anywhere, and
+      `AUTH_DEV_MODE` refuses to run outside development, so a deployed build cannot be
+      signed into without Clerk. Procedure in `docs/DEPLOYMENT.md`, which has never been
+      run
 
 Day-by-day history is the change log in `docs/MANIFEST.md`. This section is a
 snapshot of the present, not a diary — the two would drift if both tried to be both.
