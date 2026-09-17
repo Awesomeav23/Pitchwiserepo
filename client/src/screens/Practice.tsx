@@ -16,7 +16,7 @@ import { MicrophoneError, PitchEngine } from '../audio/engine';
 import { Metronome } from '../audio/metronome';
 import type { ClickPlan } from '../audio/metronome';
 import { assertContinuousPitch, onPitchFrames } from '../audio/note-source';
-import { hzToMidi, midiToHz, noteName } from '../audio/pitch';
+import { bandFor, hzToCents, hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { INSTRUMENT_PROFILES, profileById } from '../audio/profiles';
 import { DEFAULT_CONFIG } from '../audio/types';
 import type { AnalysedFrame, InstrumentProfile } from '../audio/types';
@@ -26,10 +26,11 @@ import { describeError, useApi } from '../api/useApi';
 import type { Attempt } from '../api/types';
 import { Loading, Failed } from '../components/Async';
 import { MicTrouble } from '../components/MicTrouble';
+import { useAudioInputs } from '../audio/useAudioInputs';
 import { useMe } from '../api/useMe';
 import { durationOf } from '../exercises/types';
 import type { Exercise } from '../exercises/types';
-import { reduceToNoteResults } from '../practice/take';
+import { median, reduceToNoteResults } from '../practice/take';
 import type { NoteResult } from '../practice/take';
 import { scoreAttempt } from '../practice/scoring';
 import type { AttemptSummary } from '../practice/scoring';
@@ -62,6 +63,11 @@ export interface PracticeProps {
   onResult?: (summary: AttemptSummary, attempt?: Attempt) => void;
   /** Drop the heading, for use inside a lesson that has its own. */
   embedded?: boolean;
+  /**
+   * Called as a take runs, with the note being sung and how it is going.
+   * Stage 3 of the notation plan: a lesson uses this to light up the staff.
+   */
+  onLive?: (live: { index: number | null; band: 'green' | 'amber' | 'red' | null }) => void;
 }
 
 /**
@@ -118,7 +124,7 @@ const fromApi = (e: ApiExercise): Exercise => ({
 });
 
 function PracticeTake({
-  exercise, lessonId, onResult, embedded, library, onSelectSlug,
+  exercise, lessonId, onResult, embedded, library, onSelectSlug, onLive,
 }: PracticeProps & {
   exercise: Exercise;
   library: ApiExerciseSummary[];
@@ -130,6 +136,8 @@ function PracticeTake({
   const [profileId, setProfileId] = useState(primaryInstrumentId ?? 'voice_tenor');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [micError, setMicError] = useState<unknown>(null);
+  const { inputs } = useAudioInputs();
+  const [deviceId, setDeviceId] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -149,6 +157,7 @@ function PracticeTake({
   const phaseRef = useRef<Phase>('idle');
   const resultsRef = useRef<NoteResult[] | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastLiveRef = useRef<{ index: number | null; band: 'green' | 'amber' | 'red' | null }>({ index: null, band: null });
 
   if (engineRef.current === null) engineRef.current = new PitchEngine(profile);
   const engine = engineRef.current;
@@ -226,7 +235,7 @@ function PracticeTake({
     setPhaseBoth('arming');
 
     try {
-      engine.setInput('mic');
+      engine.setInput('mic', deviceId || undefined);
       await engine.start();
 
       const ctx = engine.context;
@@ -258,7 +267,7 @@ function PracticeTake({
       void engine.stop();
       setPhaseBoth('idle');
     }
-  }, [engine, exercise, durationMs, setPhaseBoth]);
+  }, [engine, exercise, durationMs, setPhaseBoth, deviceId]);
 
   // ---- clock + draw loop ------------------------------------------------
   useEffect(() => {
@@ -289,6 +298,16 @@ function PracticeTake({
         }
       }
 
+      // Report the note under the playhead and how the last few frames of it
+      // compare with the target, so a staff elsewhere can follow along.
+      if (onLive) {
+        const live = liveAt(framesRef.current, exercise.noteSequence, takeZeroMsRef.current, takeMs);
+        if (live.index !== lastLiveRef.current.index || live.band !== lastLiveRef.current.band) {
+          lastLiveRef.current = live;
+          onLive(live);
+        }
+      }
+
       paint(canvasRef.current, {
         exercise,
         frames: framesRef.current,
@@ -300,7 +319,7 @@ function PracticeTake({
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [engine, exercise, durationMs, finish, setPhaseBoth]);
+  }, [engine, exercise, durationMs, finish, setPhaseBoth, onLive]);
 
   const busy = phase === 'arming' || phase === 'countIn' || phase === 'recording';
   const outOfRange = exerciseOutOfRange(exercise, profile);
@@ -323,6 +342,18 @@ function PracticeTake({
                 <option key={e.slug} value={e.slug}>
                   {e.title} · {e.tempoBpm} bpm · level {e.difficulty}
                 </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {inputs.length > 1 && (
+          <label>
+            Microphone
+            <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)} disabled={busy}>
+              <option value="">System default</option>
+              {inputs.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
               ))}
             </select>
           </label>
@@ -572,4 +603,37 @@ function roundRect(g: CanvasRenderingContext2D, x: number, y: number, w: number,
 function hexAlpha(hex: string, alpha: number): string {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+
+
+/**
+ * Which note is sounding, and how the last part of it compares with the target.
+ *
+ * Only the recent tail of the note is considered, not the whole of it: a note
+ * that started flat and was corrected should read as corrected, because the
+ * point of showing this live is to let someone hear the correction happening.
+ * The scorecard afterwards judges the note as a whole.
+ */
+function liveAt(
+  frames: AnalysedFrame[],
+  sequence: { notes: Array<{ midi: number; startMs: number; durationMs: number }> },
+  takeZeroMs: number,
+  takeMs: number | null,
+): { index: number | null; band: 'green' | 'amber' | 'red' | null } {
+  if (takeMs === null || takeMs < 0) return { index: null, band: null };
+
+  const index = sequence.notes.findIndex(
+    (n) => takeMs >= n.startMs && takeMs < n.startMs + n.durationMs,
+  );
+  if (index < 0) return { index: null, band: null };
+
+  const LOOKBACK_MS = 180;
+  const recent = frames.filter((f) => {
+    const t = f.timestamp - takeZeroMs;
+    return t > takeMs - LOOKBACK_MS && t <= takeMs && f.filteredHz != null;
+  });
+  if (recent.length === 0) return { index, band: null };
+
+  const hz = median(recent.map((f) => f.filteredHz as number));
+  return { index, band: bandFor(hzToCents(hz, midiToHz(sequence.notes[index].midi))) };
 }

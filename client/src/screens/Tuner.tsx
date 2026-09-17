@@ -17,6 +17,7 @@ import type { AudioInputKind, TrackReport } from '../audio/engine';
 import { assertContinuousPitch, onPitchFrames } from '../audio/note-source';
 import { INSTRUMENT_PROFILES, profileById, detectionFloorHz, profileBelowFloor } from '../audio/profiles';
 import { MicTrouble } from '../components/MicTrouble';
+import { useAudioInputs } from '../audio/useAudioInputs';
 import { useMe } from '../api/useMe';
 import { bandFor, hzToMidi, midiToHz, noteName } from '../audio/pitch';
 import { DEFAULT_CONFIG } from '../audio/types';
@@ -30,6 +31,8 @@ const BAND_COLOR: Record<string, string> = {
 export function Tuner() {
   const { primaryInstrumentId } = useMe();
   const [profileId, setProfileId] = useState(primaryInstrumentId ?? 'voice_tenor');
+  const { inputs } = useAudioInputs();
+  const [deviceId, setDeviceId] = useState<string>('');
   const [inputKind, setInputKind] = useState<AudioInputKind>('mic');
   const [running, setRunning] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -77,7 +80,7 @@ export function Tuner() {
         setTrack(null);
       } else {
         framesRef.current = [];
-        engine.setInput(inputKind);
+        engine.setInput(inputKind, deviceId || undefined);
         await engine.start();
         setRunning(true);
       }
@@ -88,7 +91,7 @@ export function Tuner() {
     } finally {
       setBusy(false);
     }
-  }, [engine, inputKind]);
+  }, [engine, inputKind, deviceId]);
 
   // ---- draw loop -------------------------------------------------------
   useEffect(() => {
@@ -152,6 +155,18 @@ export function Tuner() {
             </button>
           ))}
         </div>
+
+        {inputs.length > 1 && inputKind === 'mic' && (
+          <label>
+            Microphone
+            <select value={deviceId} onChange={(e) => setDeviceId(e.target.value)} disabled={running}>
+              <option value="">System default</option>
+              {inputs.map((d) => (
+                <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label>
           Instrument

@@ -43,7 +43,7 @@ used it yet**, and it still only runs on one laptop.
 
 **Left, and is code**
 
-- [ ] 1 screen: microphone device picker (the denied/unavailable states are built)
+- [ ] Nothing — every screen and feature on the list is built
 - [ ] Deployment — nothing is hosted anywhere
 
 Day-by-day history is the change log in `docs/MANIFEST.md`. This section is a
@@ -134,7 +134,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [x] Frame accumulation across a take, and reduction to per-note results
 - [x] Scoring: coverage, bands, mean absolute cents (`DATA_MODEL.md` §5.1)
 - [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
-- [ ] Microphone device picker and permission pre-flight — the denied/unavailable states are built; choosing between two microphones is not
+- [x] Microphone device picker — shown when more than one input exists, on both the tuner and practice
 
 **Screens — 1 of 15 remaining**
 
@@ -156,8 +156,8 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [x] Lesson: drill with self-report (US-19)
 - [x] Lesson: exercise — chrome around the practice-take screen, not a second one (US-17)
 - [x] Sheet music: VexFlow engraving with playback (ADR-015), stage 1 of 3
-- [ ] Notation stage 2 — cursor following playback
-- [ ] Notation stage 3 — live feedback on the staff during a take
+- [x] Notation stage 2 — the sounding note lights up during playback
+- [x] Notation stage 3 — during a take the staff shows the note you are on, coloured by how it is going
 - [x] Starter courses for all 12 instruments — 98 lessons, generated from one skeleton
 - [x] SVG diagrams — 11 drawn, covering what notation cannot express: keyboards, fretboards, chord charts, string layouts, tuning points. Posture and embouchure are deliberately not drawn
 

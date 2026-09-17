@@ -206,5 +206,7 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | `ApiExercise` split into summary and full record, so using a list row where notes are needed is a compile error rather than a runtime crash |
 | 2026-09-16 | Error boundary added — a render crash showed a blank page with the error only in the console |
 | 2026-09-16 | **First audio verification.** A take was started in Chrome: microphone capture, the AudioWorklet, the metronome and the count-in all ran, and phase transitions on the audio clock worked. ADR-002 and ADR-014 confirmed in the app rather than only in the spike |
+| 2026-09-17 | Notation stages 2 and 3 built — the sounding note lights up during playback, and during a take the staff shows the note you are on, coloured green/amber/red by how it is going |
+| 2026-09-17 | Microphone device picker added to the tuner and practice screens, shown only when more than one input exists |
 | 2026-09-17 | 11 SVG diagrams drawn and authored into lessons — keyboards, fretboards, chord charts, open strings, tuning points. No lesson had referenced a diagram before this |
 | 2026-09-16 | Still unverified past that point: whether the live trace draws, whether frames land in the right note windows, and whether a take reaches the database. Needs a quiet room |

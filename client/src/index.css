@@ -429,3 +429,18 @@ button.play:hover { border-color: var(--acc); }
   background: var(--sunk); border: 1px solid var(--line); border-radius: 12px;
   padding: 10px 12px;
 }
+
+/* The note currently sounding. VexFlow paints noteheads, stems and flags as
+   paths inside one group per note, so the colour is set on the descendants. */
+.vf-playing path, .vf-playing rect { fill: var(--acc) !important; stroke: var(--acc) !important; }
+.vf-playing { transition: none; }
+
+/* Stage 3: the note being played, coloured by how it is going. Outlined rather
+   than filled, so it reads differently from the playback cursor above. */
+.vf-live path, .vf-live rect { stroke-width: 2.5 !important; }
+.vf-live.vf-green path, .vf-live.vf-green rect { fill: var(--grn) !important; stroke: var(--grn) !important; }
+.vf-live.vf-amber path, .vf-live.vf-amber rect { fill: var(--amb) !important; stroke: var(--amb) !important; }
+.vf-live.vf-red   path, .vf-live.vf-red   rect { fill: var(--red) !important; stroke: var(--red) !important; }
+/* Sounding but nothing detected yet — the note is next, not wrong. */
+.vf-live:not(.vf-green):not(.vf-amber):not(.vf-red) path,
+.vf-live:not(.vf-green):not(.vf-amber):not(.vf-red) rect { fill: var(--dim) !important; stroke: var(--dim) !important; }

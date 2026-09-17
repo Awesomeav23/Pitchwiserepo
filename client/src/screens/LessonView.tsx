@@ -37,8 +37,20 @@ export function LessonView({ lessonId, onBack }: { lessonId: string; onBack: () 
     }
   }, [data]);
 
+  // Stage 3: the staff follows the performer during a take. Held here rather
+  // than inside Practice because the staff belongs to the lesson — the practice
+  // component draws a piano roll, which is a different view of the same thing.
+  //
+  // Declared before the callback that clears it: a const referenced above its
+  // own declaration only works while nothing calls it during that render, which
+  // is true today and is not a property worth relying on.
+  const [live, setLive] = useState<{ index: number | null; band: 'green' | 'amber' | 'red' | null }>(
+    { index: null, band: null },
+  );
+
   const onAttempt = useCallback((_summary: AttemptSummary, attempt?: { lessonProgress?: LessonProgress }) => {
     if (attempt?.lessonProgress) setProgress(attempt.lessonProgress);
+    setLive({ index: null, band: null });
   }, []);
 
   if (lesson.loading) return <Loading what="the lesson" />;
@@ -61,7 +73,21 @@ export function LessonView({ lessonId, onBack }: { lessonId: string; onBack: () 
       {data.kind === 'exercise' && data.exercise && (
         <section className="lesson-task">
           <h2 className="section-head">Play it</h2>
-          <Practice exercise={toExercise(data.exercise)} lessonId={data.id} onResult={onAttempt} embedded />
+          <Score
+            sequence={data.exercise.noteSequence}
+            bpm={data.exercise.tempoBpm}
+            timeSignature={data.exercise.timeSignature}
+            playable={false}
+            live={live}
+            caption="The note you are on lights up as you play"
+          />
+          <Practice
+            exercise={toExercise(data.exercise)}
+            lessonId={data.id}
+            onResult={onAttempt}
+            onLive={setLive}
+            embedded
+          />
           {data.completionRule.kind === 'attempt_score' && (
             <p className="stat">This lesson completes at {data.completionRule.minScore} or above.</p>
           )}
