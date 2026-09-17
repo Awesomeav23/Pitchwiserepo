@@ -1,4 +1,5 @@
 /** Renders one lesson content block. LEARNING_PLATFORM.md §5. */
+import { useState } from 'react';
 import { buildExercise } from '../exercises/build';
 import { Score } from '../notation/Score';
 import { Markdown } from './Markdown';
@@ -30,15 +31,7 @@ export function BlockView({ block }: { block: Block }) {
     }
 
     case 'diagram':
-      // Assets resolve by id, never by URL, so a missing one degrades to its
-      // caption rather than a broken image (LEARNING_PLATFORM §5.2). No diagram
-      // set has been drawn yet, so every one of these degrades today.
-      return (
-        <figure className="diagram missing">
-          <div className="diagram-slot">Diagram: {block.id}</div>
-          <figcaption>{block.caption}</figcaption>
-        </figure>
-      );
+      return <Diagram id={block.id} caption={block.caption} />;
 
     case 'callout':
       return (
@@ -48,4 +41,37 @@ export function BlockView({ block }: { block: Block }) {
         </aside>
       );
   }
+}
+
+
+/**
+ * Diagrams resolve by id, never by URL, so an asset can move without a data
+ * migration — and a missing one degrades to its caption rather than a broken
+ * image icon (LEARNING_PLATFORM §5.2). That fallback is not theoretical: the
+ * set is incomplete, and a lesson referencing a drawing nobody has made yet
+ * should still read.
+ */
+function Diagram({ id, caption }: { id: string; caption: string }) {
+  const [missing, setMissing] = useState(false);
+
+  if (missing) {
+    return (
+      <figure className="diagram missing">
+        <div className="diagram-slot">Diagram: {id}</div>
+        <figcaption>{caption}</figcaption>
+      </figure>
+    );
+  }
+
+  return (
+    <figure className="diagram">
+      <img
+        className="diagram-img"
+        src={`${import.meta.env.BASE_URL}diagrams/${id}.svg`}
+        alt={caption}
+        onError={() => setMissing(true)}
+      />
+      <figcaption>{caption}</figcaption>
+    </figure>
+  );
 }

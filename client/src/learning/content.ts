@@ -74,6 +74,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     ],
     tune: [
       { kind: 'prose', md: 'A flute is tuned by how far the headjoint is pushed in. Further in raises the pitch; further out lowers it. A few millimetres is a lot.' },
+      { kind: 'diagram', id: 'flute-tuning', caption: 'The headjoint slides in and out of the body' },
       { kind: 'prose', md: 'Warm up first — a cold flute plays flat, and tuning cold guarantees you will be sharp ten minutes later. Play for a minute or two, then open **Tuner**, play A4, and adjust the headjoint until the reading sits near zero.' },
       { kind: 'callout', tone: 'warning', md: 'Blowing harder also raises the pitch. Tune with the air you actually use to play, not with a careful special breath, or the instrument will be in tune only when you are being careful.' },
     ],
@@ -98,6 +99,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     ],
     tune: [
       { kind: 'prose', md: 'A clarinet is tuned at the **barrel** — pull it out slightly to lower the pitch, push it in to raise it. Millimetres matter.' },
+      { kind: 'diagram', id: 'clarinet-tuning', caption: 'The barrel, between mouthpiece and upper joint' },
       { kind: 'prose', md: 'Warm the instrument first by playing for a minute; a cold clarinet is flat. Then open **Tuner** and play your written C — remember it will read as B♭, because the instrument transposes. Adjust the barrel until that reading is steady and central.' },
       { kind: 'callout', tone: 'warning', md: 'Biting harder raises the pitch and thins the tone. If you are sharp, loosen the embouchure before you touch the barrel.' },
     ],
@@ -122,6 +124,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     ],
     tune: [
       { kind: 'prose', md: 'A trumpet is tuned at the **main tuning slide** — the large U-shaped slide nearest you. Pull it out to lower the pitch, push it in to raise it.' },
+      { kind: 'diagram', id: 'trumpet-tuning', caption: 'The main tuning slide, nearest you' },
       { kind: 'prose', md: 'Warm up first: a cold trumpet is flat, and the pitch will drift upward for the first few minutes. Then open **Tuner** and play your written C, which sounds B♭. Adjust the slide until the reading is central.' },
       { kind: 'callout', tone: 'warning', md: 'Pressing harder or blowing harder both raise the pitch. Tune with normal playing effort, not with a forced note.' },
     ],
@@ -141,6 +144,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       { kind: 'prose', md: 'The left hand stays loose: thumb opposite the first finger, fingertips falling onto the string rather than pressing. The wrist stays straight — a collapsed wrist is the most common cause of a beginner being unable to reach the higher fingers.' },
       { kind: 'prose', md: 'The bow is held with a curved thumb under the frog and rounded fingers over the stick. New bow hair needs **rosin** or it will make no sound at all. Draw the bow parallel to the bridge, about halfway between bridge and fingerboard, using arm weight rather than pressure.' },
       { kind: 'prose', md: 'The four strings, lowest to highest, are **G3 D4 A4 E5**. Everything in first position is within reach of those four plus four fingers.' },
+      { kind: 'diagram', id: 'violin-strings', caption: 'The four open strings' },
       { kind: 'callout', tone: 'note', md: 'A scratchy sound usually means too much pressure or a bow drifting toward the bridge. Lighten, and bring the bow back parallel.' },
       CANNOT_SEE,
     ],
@@ -165,6 +169,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       { kind: 'prose', md: 'The knees hold the lower bouts lightly. The instrument should stay put if you take both hands off it; if it does not, the endpin length or the angle is wrong, and everything you do with your hands will be spent holding it up instead.' },
       { kind: 'prose', md: 'Left-hand fingers curve onto the string with a straight wrist and the thumb behind the neck. The bow is held with a curved thumb and rounded fingers, drawn parallel to the bridge using arm weight — not grip.' },
       { kind: 'prose', md: 'The four strings, lowest to highest, are **C2 G2 D3 A3**. Cello music is written in the **bass clef**, which is why the staves in this course look different from the violin or flute ones.' },
+      { kind: 'diagram', id: 'cello-strings', caption: 'The four open strings' },
       CANNOT_SEE,
     ],
     tune: [
@@ -189,6 +194,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       { kind: 'prose', md: 'The fretting hand presses **just behind** a fret, not on top of it and not halfway between. Fingertips, not pads. Thumb behind the neck, roughly opposite the second finger. A buzzing note is almost always a finger too far from the fret or not quite upright.' },
       { kind: 'prose', md: 'The picking hand can use a plectrum or fingers. For this course use whichever you find easier — the notes are the same either way, one at a time.' },
       { kind: 'prose', md: 'The six strings, lowest to highest, are **E2 A2 D3 G3 B3 E4**. This starter course stays on single notes; chords come at the end.' },
+      { kind: 'diagram', id: 'guitar-strings', caption: 'The six strings and the first three frets' },
       CANNOT_SEE,
     ],
     tune: [
@@ -203,8 +209,10 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       blocks: [
         { kind: 'prose', md: 'Everything so far has been one note at a time, because that is what the app can measure. Guitar is not a one-note-at-a-time instrument, so here is the other half.' },
         { kind: 'prose', md: 'An **E minor** chord is the easiest first shape: second finger on the second fret of the A string, third finger on the second fret of the D string, and strum all six. Two fingers, and nothing to mute.' },
+        { kind: 'diagram', id: 'guitar-chord-em', caption: 'E minor — two fingers, strum all six strings' },
         { kind: 'prose', md: 'Press just behind the frets, arch your fingers so they do not touch the neighbouring strings, and strum slowly enough to hear each string. If one buzzes or thuds, it is being touched by the side of a finger — arch higher.' },
         { kind: 'prose', md: 'Then try **A minor**: first finger on the first fret of the B string, second on the second fret of the D string, third on the second fret of the G string, and strum from the A string down. Switch between the two until the change takes less than a bar.' },
+        { kind: 'diagram', id: 'guitar-chord-am', caption: 'A minor — × marks the string you do not strum' },
         { kind: 'callout', tone: 'limitation', md: 'Pitchwise hears one note at a time, and a chord is several. Mark this complete yourself when the shapes ring cleanly.' },
       ],
     },
@@ -223,6 +231,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       { kind: 'prose', md: 'Fret just behind the fret with fingertips, thumb behind the neck. On bass the spacing is wide enough that one finger per fret is a real stretch at first — take it slowly, and stop if your hand aches rather than playing through it.' },
       { kind: 'prose', md: 'Pluck with the first two fingers of the right hand, alternating, resting the thumb on the pickup. Alternating from the start is much easier than retraining later.' },
       { kind: 'prose', md: 'The four strings, lowest to highest, are **E1 A1 D2 G2**.' },
+      { kind: 'diagram', id: 'bass-strings', caption: 'The four strings and the first three frets' },
       { kind: 'callout', tone: 'warning', md: 'The low E is **below what this app can detect**. A 2048-sample window resolves down to about 47 Hz and low E is 41 Hz, so it will read as nothing rather than as a wrong note. That is the detector declining to guess — the exercises in this course stay above it.' },
       CANNOT_SEE,
     ],
@@ -246,6 +255,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       { kind: 'prose', md: 'Sit at the middle of the keyboard with your forearms roughly level with the keys. If your wrists have to rise to reach, the stool is too low, and every hour you play at the wrong height builds a habit you will have to undo.' },
       { kind: 'prose', md: 'Hands curved as if holding a small ball, fingertips on the keys, wrists loose and level. Play with the weight of the arm rather than by pressing with the fingers alone — the key only needs enough to sound it.' },
       { kind: 'prose', md: 'The black keys come in groups of **two** and **three**, and that pattern is how you find anything without looking. **Middle C** is the white key immediately to the left of a group of two, nearest the middle of the instrument. Find it now; every exercise in this course starts from it.' },
+      { kind: 'diagram', id: 'piano-keyboard', caption: 'Black keys in groups of two and three — middle C sits left of a group of two' },
       { kind: 'prose', md: 'Number your fingers 1 to 5, thumb to little finger. This course stays in five-finger position with the right hand: thumb on middle C, and one finger per white key up to G.' },
       CANNOT_SEE,
     ],
@@ -262,6 +272,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
       blocks: [
         { kind: 'prose', md: 'Everything so far has been one note at a time, because that is what the app can measure. A piano is not a one-note-at-a-time instrument, so here is the other half.' },
         { kind: 'prose', md: 'A **C major triad**: thumb on middle C, third finger on E, fifth finger on G. Press all three together, with the same relaxed arm weight you have used for single notes.' },
+        { kind: 'diagram', id: 'piano-c-major-triad', caption: 'C, E and G pressed together' },
         { kind: 'prose', md: 'Listen for whether all three sound at exactly the same moment. Unevenness is the thing to fix first, and it is easier to hear than to feel — play it, hold it, and listen to whether one note arrived late.' },
         { kind: 'prose', md: 'Then move the same shape up: **D F A**, then **E G B**. The hand shape does not change; only where it sits does.' },
         { kind: 'callout', tone: 'limitation', md: 'Pitchwise hears one note at a time, and a triad is three. Mark this complete yourself when they sound together cleanly. A MIDI keyboard could grade this exactly; that input is not built yet.' },

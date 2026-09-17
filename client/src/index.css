@@ -423,3 +423,9 @@ button.play:hover { border-color: var(--acc); }
   background: var(--sunk); border: 1px solid var(--line); border-radius: 12px;
   padding: 14px 16px; overflow-x: auto; white-space: pre-wrap;
 }
+
+.diagram-img {
+  display: block; width: 100%; max-width: 520px;
+  background: var(--sunk); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 12px;
+}

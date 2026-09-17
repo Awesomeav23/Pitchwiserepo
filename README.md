@@ -159,7 +159,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [ ] Notation stage 2 — cursor following playback
 - [ ] Notation stage 3 — live feedback on the staff during a take
 - [x] Starter courses for all 12 instruments — 98 lessons, generated from one skeleton
-- [ ] SVG diagram sets — every `diagram` block currently degrades to its caption
+- [x] SVG diagrams — 11 drawn, covering what notation cannot express: keyboards, fretboards, chord charts, string layouts, tuning points. Posture and embouchure are deliberately not drawn
 
 **Infrastructure**
 

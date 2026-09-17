@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 178" role="img" aria-label="Piano keyboard: black keys in groups of two and three, middle C marked" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+<title>Piano keyboard: black keys in groups of two and three, middle C marked</title>
+<rect x="10" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="44" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="78" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="112" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="146" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="180" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="214" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="248" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="282" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="316" y="10" width="32" height="128" rx="3" fill="#f7f7fa" stroke="#c9c9d6"/>
+<rect x="33.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="67.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="135.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="169.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="203.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="271.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<rect x="305.0" y="10" width="20" height="80" rx="2" fill="#14141c"/>
+<path d="M26.0 150 L26.0 142" stroke="#7c5cff" stroke-width="2"/>
+<text x="26.0" y="166" font-size="12" fill="#7c5cff" text-anchor="middle">middle C</text>
+<text x="61.0" y="114" font-size="11" fill="#8b8b9f" text-anchor="middle">group of 2</text>
+<text x="163.0" y="114" font-size="11" fill="#8b8b9f" text-anchor="middle">group of 3</text>
+</svg>
