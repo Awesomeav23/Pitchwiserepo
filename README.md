@@ -37,8 +37,12 @@ on one laptop.
 
 **Left, and is code**
 
-- [ ] Onset suppression — the hook exists and is set to `0`, waiting on a measured
-      frame count. Nothing else on this page is unbuilt
+Nothing. The last open item, onset suppression, is **deliberately left at `0`** rather
+than unbuilt: the mechanism works and is wired in, but the number of frames to discard
+after a note's onset depends on the instrument and has not been measured. A plucked
+string and a struck key have long, messy attacks; a sung note has almost none. Setting it
+too high throws away good frames on voice and flute, and any value chosen without
+measuring would sit next to 24 honestly-empty `[TBM]` cells pretending to be one of them.
 
 **Left, and needs someone to look**
 
@@ -147,7 +151,7 @@ AudioWorklet with Pitchy; tuner mode (US-08).
 - [x] Metronome with count-in — US-04. On the capture `AudioContext`, not Tone.js (ADR-014)
 - [x] Frame accumulation across a take, and reduction to per-note results
 - [x] Scoring: coverage, bands, mean absolute cents (`DATA_MODEL.md` §5.1)
-- [ ] Onset suppression — still blocked on the spike's frame count; the hook exists and is set to 0
+- [x] Onset suppression — mechanism built and wired in, held at `0` by choice until the frame count is measured
 - [x] Microphone device picker — shown when more than one input exists, on both the tuner and practice
 
 **Screens — 1 of 15 remaining**
