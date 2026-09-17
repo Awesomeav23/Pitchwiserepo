@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete. Server built and verified; client substantially built and **entirely unverified**; hardware measurements not started
-**Last checkpoint:** 2026-09-16 (15 of 15 screens; sign-in, catalog, exercise detail and the start of a take used by a person)
+**Last checkpoint:** 2026-09-17 (all buildable work complete; nothing built today has been rendered)
 
 ---
 
@@ -206,7 +206,13 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-16 | `ApiExercise` split into summary and full record, so using a list row where notes are needed is a compile error rather than a runtime crash |
 | 2026-09-16 | Error boundary added — a render crash showed a blank page with the error only in the console |
 | 2026-09-16 | **First audio verification.** A take was started in Chrome: microphone capture, the AudioWorklet, the metronome and the count-in all ran, and phase transitions on the audio clock worked. ADR-002 and ADR-014 confirmed in the app rather than only in the spike |
-| 2026-09-17 | Notation stages 2 and 3 built — the sounding note lights up during playback, and during a take the staff shows the note you are on, coloured green/amber/red by how it is going |
-| 2026-09-17 | Microphone device picker added to the tuner and practice screens, shown only when more than one input exists |
-| 2026-09-17 | 11 SVG diagrams drawn and authored into lessons — keyboards, fretboards, chord charts, open strings, tuning points. No lesson had referenced a diagram before this |
 | 2026-09-16 | Still unverified past that point: whether the live trace draws, whether frames land in the right note windows, and whether a take reaches the database. Needs a quiet room |
+| 2026-09-16 | Deployment prepared: the Express app split from its listener so the same app serves locally and as a Vercel function, client and API deploying from one project so CORS never applies in production. `docs/DEPLOYMENT.md` written, and never run |
+| 2026-09-17 | Found: **no lesson had ever referenced a diagram** — 0 diagram blocks across all 98, against 227 prose, 102 callout and 60 score. The README's claim that "every diagram block degrades to its caption" described nothing that was happening |
+| 2026-09-17 | 11 SVG diagrams drawn and authored into lessons — piano keyboard and triad, guitar and bass fretboards, two chord charts, violin and cello open strings, and the tuning point on flute, clarinet and trumpet. Verified in both directions: every referenced id has a file, no file is orphaned |
+| 2026-09-17 | Decided **not** to draw posture, holding position or embouchure. Those need a photograph or an illustrator, and a schematic line drawing of a person holding an instrument would be worse than the prose already there. The gap is left visible rather than filled badly |
+| 2026-09-17 | Notation stage 2 — the sounding note lights up during playback. Both halves had been built in stage 1 and left unused: the renderer already returned a note-index to element map, the player already reported note indices |
+| 2026-09-17 | Notation stage 3 — during a take the staff shows the note being played, coloured by how the last 180 ms compares with the target. Only the recent tail, so a note corrected mid-way reads as corrected |
+| 2026-09-17 | Microphone device picker on the tuner and practice screens, shown only when more than one input exists. Labels are blank until permission is granted, so it falls back to "Microphone 1, 2" and fills in after a first take |
+| 2026-09-17 | Fixed: `setLive` was captured by a callback declared above the `useState` that creates it — works only while nothing calls it during that render. Caught by the linter, not by the typechecker |
+| 2026-09-17 | **Every buildable item is now built.** The only remaining code item is onset suppression, which is blocked on a measurement. What is left needs a microphone, three accounts, or someone looking at a screen |
