@@ -69,10 +69,22 @@ exercises.get('/exercises', wrap(async (req, res) => {
   }
 
   params.push(limit + 1);
+
+  // The library is browsed, not scrolled by recency, and every row in it was
+  // seeded in one transaction — so created_at is identical across all of them
+  // and the tiebreak on a random uuid made the order arbitrary and unstable
+  // across reseeds. Easiest first is what someone choosing an exercise wants.
+  //
+  // `all=true` keeps recency ordering, because that is the path with enough
+  // rows for the cursor to matter and the cursor is built on (created_at, id).
+  const order = req.query.all === 'true'
+    ? 'created_at DESC, id DESC'
+    : 'difficulty ASC, title ASC';
+
   const { rows } = await pool.query<Row>(
     `SELECT * FROM exercises
       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
-      ORDER BY created_at DESC, id DESC
+      ORDER BY ${order}
       LIMIT $${params.length}`,
     params,
   );
