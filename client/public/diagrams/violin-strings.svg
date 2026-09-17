@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 228" role="img" aria-label="Violin open strings: G3 D4 A4 E5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
 <title>Violin open strings: G3 D4 A4 E5</title>
 <g transform="scale(1.3125)">
-<text x="20" y="20" font-size="11" fill="#8b8b9f">open strings, lowest to highest</text>
+<text x="20" y="20" font-size="8.38" fill="#8b8b9f">open strings, lowest to highest</text>
 <line x1="70" y1="34" x2="280" y2="34" stroke="#e6e6f0" stroke-width="2.40"/>
-<text x="58" y="38" font-size="13" fill="#e6e6f0" text-anchor="end">G3</text>
+<text x="58" y="38" font-size="9.90" fill="#e6e6f0" text-anchor="end">G3</text>
 <line x1="70" y1="60" x2="280" y2="60" stroke="#e6e6f0" stroke-width="1.95"/>
-<text x="58" y="64" font-size="13" fill="#e6e6f0" text-anchor="end">D4</text>
+<text x="58" y="64" font-size="9.90" fill="#e6e6f0" text-anchor="end">D4</text>
 <line x1="70" y1="86" x2="280" y2="86" stroke="#e6e6f0" stroke-width="1.50"/>
-<text x="58" y="90" font-size="13" fill="#e6e6f0" text-anchor="end">A4</text>
+<text x="58" y="90" font-size="9.90" fill="#e6e6f0" text-anchor="end">A4</text>
 <line x1="70" y1="112" x2="280" y2="112" stroke="#e6e6f0" stroke-width="1.05"/>
-<text x="58" y="116" font-size="13" fill="#e6e6f0" text-anchor="end">E5</text>
-<text x="20" y="160" font-size="11" fill="#7c5cff">tune each with the fine tuners</text>
+<text x="58" y="116" font-size="9.90" fill="#e6e6f0" text-anchor="end">E5</text>
+<text x="20" y="160" font-size="8.38" fill="#7c5cff">tune each with the fine tuners</text>
 </g>
 </svg>
