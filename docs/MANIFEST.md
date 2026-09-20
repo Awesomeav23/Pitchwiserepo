@@ -2,7 +2,7 @@
 
 **Project:** Pitchwise — real-time pitch feedback for voice and melodic instruments
 **Phase:** 3 of 3 — documents complete. Server built and verified; client substantially built and **entirely unverified**; hardware measurements not started
-**Last checkpoint:** 2026-09-17 (all buildable work complete; nothing built today has been rendered)
+**Last checkpoint:** 2026-09-20 (staff layout corrected against a screenshot; the rest is unchanged from 2026-09-17)
 
 ---
 
@@ -237,4 +237,6 @@ is unblocked and does not depend on any of it, so it can proceed in parallel.
 | 2026-09-17 | A take inside a lesson used the **learner's own instrument** rather than the course's, so a guitar lesson was gated and range-clamped as a piano. The lesson response now carries its course's instrument |
 | 2026-09-17 | Lessons showed an instrument **dropdown**, letting a learner analyse a guitar lesson as a flute. The course decides the instrument, so it is stated rather than offered; the picker remains on the standalone practice screen, where choosing is the point |
 | 2026-09-17 | Bar widths were split evenly regardless of content, so a final bar holding one long note got as much room as a bar of four — cramming that note against the barline and leaving most of its bar empty. Width now follows each bar's beats, with a floor so a short bar stays readable |
+| 2026-09-20 | The staff's **closing barline was being shaved off**. `box-sizing: border-box` is set app-wide, so sizing the sheet to the width the staff needed left a content box 14px narrower than the SVG inside it, and `overflow: hidden` took the difference off the right edge. The host's padding and border now come off the width offered to the renderer and go back on when it is set |
+| 2026-09-20 | Bar widths follow **what a bar holds, not how long it lasts**. Sizing by beats gave a final bar with one half note a third of the staff to hold a single notehead, leaving roughly 150px of empty five-line staff after the last note. A bar is now a slot per notehead plus room at each barline, and a line squeezes proportionally only when the column is narrower than the music wants. This supersedes the beat-proportional split below |
 | 2026-09-17 | **Every buildable item is now built.** The only remaining code item is onset suppression, which is blocked on a measurement. What is left needs a microphone, three accounts, or someone looking at a screen |

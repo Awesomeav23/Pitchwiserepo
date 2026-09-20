@@ -149,10 +149,26 @@ export function renderScore(
   const PAD_TOP = 8;
   const heightPx = PAD_TOP * 2 + lines.length * STAVE_H + (lines.length - 1) * SYSTEM_GAP;
 
+  // How much horizontal room a bar needs: room at each barline plus a slot per
+  // notehead. Deliberately not the bar's duration — a bar holding one half note
+  // needs one slot, not twice the room of a bar holding two quarters, and
+  // sizing by duration left a third of the staff empty after the last note.
+  const NOTE_SLOT = 58;
+  const BAR_PAD = 20;
+  const barNeed = (barCells: Cell[]): number => BAR_PAD + barCells.length * NOTE_SLOT;
+
+  const noteCount = cells.filter((c) => c.index !== null).length;
+  // The first line carries the clef, and the time signature when there is more
+  // than one note to count — a meter on a single note answers a question
+  // nobody asked, and the clef stays because on those it is the point.
+  const withMeter = noteCount > 1;
+  const signatureRoom = withMeter ? 62 : 44;
+
   // A short example does not need the full column. One note stretched across
   // 1100px of staff reads as a mistake rather than as an example.
-  const noteCount = cells.filter((c) => c.index !== null).length;
-  const width = Math.min(opts.width, 150 + noteCount * 78);
+  const widest = Math.max(...lines.map((line, i) =>
+    line.reduce((sum, b) => sum + barNeed(b), 0) + (i === 0 ? signatureRoom : 0)));
+  const width = Math.min(opts.width, widest + 2);
 
   const renderer = new Renderer(host, Renderer.Backends.SVG);
   renderer.resize(width, heightPx);
@@ -167,24 +183,18 @@ export function renderScore(
     // it needs more room than the others or its notes crowd the signature.
     let x = 1;
 
-    // Width in proportion to what each bar holds, not split evenly. A final
-    // bar with one held note was getting the same width as a bar of four,
-    // which crammed that note against the barline and left most of its bar
-    // empty.
-    const lineBeats = line.map((bar) => bar.reduce((sum, c) => sum + c.beats, 0));
-    const totalLineBeats = lineBeats.reduce((a, b) => a + b, 0) || 1;
-    const signatureRoom = lineIndex === 0 ? 46 : 0;
-    const shareable = usableWidth - signatureRoom;
+    // Each bar gets the room it needs, in proportion to the others when the
+    // line has to be squeezed into a column narrower than the music wants.
+    const sigRoom = lineIndex === 0 ? signatureRoom : 0;
+    const shareable = usableWidth - sigRoom;
+    const needs = line.map(barNeed);
+    const totalNeed = needs.reduce((a, b) => a + b, 0) || 1;
+    const squeeze = Math.min(1, shareable / totalNeed);
 
     line.forEach((barCells, barIndex) => {
       const isFirst = lineIndex === 0 && barIndex === 0;
-      // A time signature on a one-note example answers a question nobody asked;
-      // the clef stays, because on these it is the point.
-      const withMeter = isFirst && noteCount > 1;
-      const extra = isFirst ? signatureRoom : 0;
-      // A floor, so a single short note still gets a readable bar.
-      const share = Math.max(0.18, lineBeats[barIndex] / totalLineBeats);
-      const barWidth = Math.floor(shareable * share) + extra;
+      const extra = isFirst ? sigRoom : 0;
+      const barWidth = Math.floor(needs[barIndex] * squeeze) + extra;
 
       const stave = new Stave(x, y, barWidth, {
         spaceAboveStaffLn: SPACE_LN,
@@ -199,7 +209,7 @@ export function renderScore(
       const voice = new Voice({ numBeats: beatsPerBar, beatValue: 4 });
       voice.setStrict(false);
       voice.addTickables(barCells.map((c) => c.note));
-      new Formatter().joinVoices([voice]).format([voice], barWidth - (isFirst ? (withMeter ? 62 : 44) : 16));
+      new Formatter().joinVoices([voice]).format([voice], barWidth - (isFirst ? signatureRoom : 16));
       voice.draw(ctx, stave);
 
       for (const cell of barCells) {

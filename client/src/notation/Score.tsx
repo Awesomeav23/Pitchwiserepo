@@ -62,13 +62,21 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
         // Measured from the parent, not from the host: the host's width is set
         // below to whatever the staff needed, so measuring it would feed last
         // render's answer back in and ratchet the staff narrower each time.
-        const available = host.parentElement?.clientWidth ?? 0;
+        //
+        // The host's own padding and border come off that, and go back on when
+        // its width is set: box-sizing is border-box app-wide, so a width of
+        // exactly the staff's would leave the staff wider than the content box
+        // and `overflow: hidden` would shave the closing barline off.
+        const cs = getComputedStyle(host);
+        const chrome = ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth']
+          .reduce((sum, prop) => sum + (parseFloat(cs[prop as 'paddingLeft']) || 0), 0);
+        const available = (host.parentElement?.clientWidth ?? 0) - chrome;
         if (available < 40) return;
         try {
           host.style.width = '100%';
           const { elementFor, widthPx } = renderScore(host, sequence,
             { bpm, clef, timeSignature, width: available });
-          host.style.width = `${widthPx}px`;
+          host.style.width = `${widthPx + chrome}px`;
           // Re-engraving replaces every element, so the old map points at nodes
           // no longer in the document. Anything highlighted is gone with them.
           elementsRef.current = elementFor;
