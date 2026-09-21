@@ -35,7 +35,7 @@ measured.
 - [x] **Backend complete** — Postgres, full schema, seed, auth, every endpoint in `API_SPEC.md`
 - [x] Progress decided by the server, not the browser
 - [x] 11 diagrams, the playback cursor, and live feedback on the staff during a take
-- [x] 78 automated checks — 58 API, 20 scoring
+- [x] 103 automated checks — 58 API, 20 scoring, 25 DSP
 
 **Left, and is code**
 
