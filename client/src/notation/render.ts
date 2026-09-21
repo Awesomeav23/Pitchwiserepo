@@ -162,7 +162,12 @@ export function renderScore(
   // than one note to count — a meter on a single note answers a question
   // nobody asked, and the clef stays because on those it is the point.
   const withMeter = noteCount > 1;
-  const signatureRoom = withMeter ? 62 : 44;
+  // Measured from what VexFlow actually draws, not estimated: a treble clef
+  // comes out 26.8px wide and a 4/4 18.8px, and with the padding either side
+  // the first note cannot start before x+78. The old estimate of 62 was 16px
+  // short, so the first bar was budgeted less room than its signature needed
+  // and every note in it was pulled left of where the formatter was aiming.
+  const signatureRoom = withMeter ? 78 : 46;
 
   // A short example does not need the full column. One note stretched across
   // 1100px of staff reads as a mistake rather than as an example.
@@ -209,7 +214,18 @@ export function renderScore(
       const voice = new Voice({ numBeats: beatsPerBar, beatValue: 4 });
       voice.setStrict(false);
       voice.addTickables(barCells.map((c) => c.note));
-      new Formatter().joinVoices([voice]).format([voice], barWidth - (isFirst ? signatureRoom : 16));
+      // Ask the stave how much room the notes actually have rather than
+      // subtracting an estimate from the bar's width. VexFlow lays a voice out
+      // from getNoteStartX(), which is only known after the clef and meter are
+      // added, so any figure computed before that is aiming at the wrong
+      // window — which is what left the last note of a bar short of its
+      // barline. NOTE_PAD keeps the final notehead off the barline itself.
+      const NOTE_PAD = 12;
+      const noteRoom = Math.max(
+        NOTE_SLOT,
+        stave.getNoteEndX() - stave.getNoteStartX() - NOTE_PAD,
+      );
+      new Formatter().joinVoices([voice]).format([voice], noteRoom);
       voice.draw(ctx, stave);
 
       for (const cell of barCells) {
