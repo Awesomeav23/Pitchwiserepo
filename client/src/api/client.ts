@@ -59,7 +59,27 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (res.status === 204) return undefined as T;
 
   const text = await res.text();
-  const body = text ? JSON.parse(text) : null;
+
+  // Not every reply is JSON, and the ones that are not are the interesting
+  // ones: a platform 404 page, a plain-text 500 from a function that died
+  // before it could route. Parsing those unguarded turned every backend
+  // failure into "Unexpected token 'T'", which names the first character of
+  // someone else's error page rather than the problem.
+  let body: { error?: { code?: string; message?: string; details?: ApiError['details'] } } | null = null;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      const snippet = text.trim().split('\n')[0].slice(0, 120);
+      throw new ApiError(
+        res.status,
+        res.ok ? 'bad_response' : 'upstream_error',
+        res.ok
+          ? `The API returned something that was not JSON: ${snippet}`
+          : `The API failed with HTTP ${res.status}: ${snippet}`,
+      );
+    }
+  }
 
   if (!res.ok) {
     const e = body?.error ?? {};
