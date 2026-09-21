@@ -14,9 +14,11 @@ note; the courses tell you which note to go for and why.
 
 ## Where this is
 
-Everything buildable is built. What is missing is that **most of it has never been
-looked at**, none of its performance numbers have been measured, and it still only runs
-on one laptop.
+Everything buildable is built, and it is **deployed** —
+[pitchwiserepo.vercel.app](https://pitchwiserepo.vercel.app), on Vercel, Neon and
+Clerk, redeploying on every push to `main`. What is still missing is that **most of
+it has never been looked at**, and none of its performance numbers have been
+measured.
 
 **Done**
 
@@ -57,12 +59,13 @@ measuring would sit next to 24 honestly-empty `[TBM]` cells pretending to be one
       measurements, fills every `TBM` in this file and 24 in `AUDIO_PIPELINE.md`, and
       settles three of the five open questions in `MANIFEST.md`
 
-**Left, and needs an account**
+**Done since, and no longer left**
 
-- [ ] **Neon, Clerk and Vercel** → deployment. Nothing is hosted anywhere, and
-      `AUTH_DEV_MODE` refuses to run outside development, so a deployed build cannot be
-      signed into without Clerk. Procedure in `docs/DEPLOYMENT.md`, which has never been
-      run
+- [x] **Neon, Clerk and Vercel** → deployed 21 Sept 2026. `docs/DEPLOYMENT.md` has
+      now been run and rewritten to match: §1 gains the `/api` rewrite that was
+      missing from `vercel.json`, and §7 records what actually cost a deploy cycle
+      rather than what was predicted to. Migrations and the seed are still manual
+      and still have to precede the first request
 
 Day-by-day history is the change log in `docs/MANIFEST.md`. This section is a
 snapshot of the present, not a diary — the two would drift if both tried to be both.

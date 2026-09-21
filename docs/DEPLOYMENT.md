@@ -1,8 +1,10 @@
 # DEPLOYMENT.md
 
-**Status:** written, **never run**. Everything below is reasoned from the code and
-verified as far as it can be without an account; the deployment itself has not
-happened. Expect the first attempt to need corrections.
+**Status:** **run, 21 September 2026.** Live at https://pitchwiserepo.vercel.app
+on Vercel, Neon and Clerk. What follows is no longer reasoned from the code — it
+is what happened, corrected where the reasoning had been wrong. §7 records the
+three things that actually cost a deploy cycle, which is the part worth reading
+first.
 
 `REQUIREMENTS.md` §9 lists deployment as protected, never cut.
 
@@ -15,6 +17,22 @@ One Vercel project serves both halves:
 ```
   /            → client/dist        static React build
   /api/v1/*    → api/index.js       the Express app, as a serverless function
+```
+
+That second line needs a rewrite in `vercel.json` and does not work without one:
+
+```json
+"rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
+```
+
+Vercel's filesystem convention exposes `api/index.js` at exactly `/api`, while
+the Express app inside mounts its router at `/api/v1`. Without the rewrite every
+real request matches no function and no static file, and Vercel answers with its
+own 404 **HTML** page, which the client then fails to parse as JSON. The symptom
+names a character rather than a cause:
+
+```
+Unexpected token 'T', "The page c"... is not valid JSON
 ```
 
 One origin, so **CORS never applies in production**. The CORS middleware in the
@@ -102,6 +120,19 @@ an unauthenticated build from shipping.
 `VITE_API_BASE` is not set. The client resolves its API base from the origin:
 localhost in development, same-origin otherwise.
 
+**Environment variables apply to new deployments, not to running ones.** Adding
+or changing any of the above has no effect until something builds again — a
+push, or Redeploy in the dashboard. This is easy to misread as the variable not
+having been saved. `VITE_CLERK_PUBLISHABLE_KEY` is stricter still: Vite inlines
+it into the bundle at build time, so it must exist *before* the build, and
+changing it needs a rebuild rather than a restart.
+
+**Clerk runs on a development instance here**, and that is the right choice
+rather than a shortcut. A Clerk *production* instance requires DNS records on a
+domain you own, which a `vercel.app` subdomain cannot provide. Development
+instances work on any domain; `pk_test_…` is the key to use. Moving to a
+production instance is a step for a custom domain, not for going live.
+
 ## 6. Checking it worked
 
 ```sh
@@ -117,17 +148,48 @@ you get the local form, `VITE_CLERK_PUBLISHABLE_KEY` did not reach the build —
 Vite inlines it at build time, so it must exist *before* the build, and changing
 it needs a redeploy rather than a restart.
 
-## 7. Known risks on the first attempt
+## 7. What actually went wrong
 
-Listed so a failure is recognisable rather than mysterious.
+The first deployment took three cycles. All three were avoidable and are fixed;
+they are recorded because each one presented as something other than its cause.
 
-- **The function may not find `server/dist`.** `api/index.js` imports compiled
-  output from outside its own directory. Vercel traces imports and should include
-  it, but this is the step most likely to need adjusting — possibly by bundling
-  the server into `api/` instead.
-- **Neon's pooled connection string** is the one to use. The direct one exhausts
-  connections quickly under serverless, where each invocation may open its own.
-- **`npm ci` in the build command** requires both lockfiles to be current. They
-  are committed and were regenerated when Clerk and VexFlow were added.
+- **The `/api` rewrite was missing** (§1). Every API call returned Vercel's 404
+  HTML. Fixed in `vercel.json`. This was the one genuine bug in the deployment
+  configuration, and it had gone unnoticed precisely because this file had never
+  been run.
+- **A crash before the handler existed could only report itself as `500`.** The
+  app reads configuration at import time and throws on anything missing —
+  deliberately, per `lib/config.ts`. Under a serverless runtime that throw
+  happens before any handler is registered, so the platform has nothing to
+  report but `FUNCTION_INVOCATION_FAILED` and the reason is visible only in a
+  dashboard. `api/index.js` now imports dynamically inside the handler and
+  returns the cause as JSON:
+
+  ```
+  {"error":{"code":"server_misconfigured",
+            "message":"Missing required environment variable DATABASE_URL"}}
+  ```
+
+  Every remaining step was then diagnosable with `curl`. Keep this property: a
+  deployment that cannot say what is wrong with it costs more than the guard is
+  worth.
+- **Environment variables do not apply to running deployments** (§5). Twice this
+  looked like a value had not saved when it simply had not been rebuilt.
+
+**The risk that did not materialise.** `api/index.js` imports compiled output
+from outside its own directory, and this file previously called that the step
+most likely to need adjusting. Vercel's tracing includes `server/dist` without
+help. The guarded import above reports `server_build_missing` if that ever stops
+being true, so it will be recognisable rather than mysterious.
+
+Still true, and still worth knowing:
+
+- **Neon's pooled connection string** is the one to use — the hostname contains
+  `-pooler`. The direct one exhausts connections quickly under serverless, where
+  each invocation may open its own.
+- **`npm ci` in the build command** requires both lockfiles to be current.
 - **Migrations do not run automatically.** Step 3 is manual and must happen
-  before the first request, or every endpoint returns a database error.
+  before the first request, or every endpoint returns a database error. Signing
+  in counts as a request: `middleware/auth.ts` provisions a user row on the
+  first authenticated call, so an unmigrated database fails at sign-in and looks
+  like an authentication problem.
