@@ -57,6 +57,7 @@ export function ExerciseDetail({ slug }: { slug: string }) {
         sequence={written}
         bpm={e.tempoBpm}
         timeSignature={e.timeSignature}
+        instrument={primaryInstrumentId ?? undefined}
         caption={notationShift === 0
           ? 'Press ▶ to hear it'
           : `Written for ${profile?.displayName} — sounds a ${Math.abs(notationShift)} semitone${Math.abs(notationShift) === 1 ? '' : 's'} ${notationShift > 0 ? 'lower' : 'higher'} than it reads`}

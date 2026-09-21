@@ -12,7 +12,9 @@ export type Block =
   /** Sheet music. Authored as the compact note string of ADR-011 and engraved
    *  by VexFlow, so one source produces both the notation and the audio. */
   | { kind: 'score'; spec: string; bpm: number; clef?: 'treble' | 'bass';
-      timeSignature?: string; caption?: string; playable?: boolean }
+      timeSignature?: string; caption?: string; playable?: boolean;
+      /** Which instrument's voice to play it back with. */
+      instrumentId?: string }
   | { kind: 'diagram'; id: string; caption: string }
   | { kind: 'callout'; tone: CalloutTone; md: string };
 

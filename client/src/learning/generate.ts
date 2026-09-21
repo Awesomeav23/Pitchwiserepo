@@ -78,6 +78,7 @@ function scoreBlock(c: InstrumentCourse, key: keyof typeof SPECS, caption: strin
     bpm,
     clef: c.clef,
     caption,
+    instrumentId: c.instrumentId,
   };
 }
 

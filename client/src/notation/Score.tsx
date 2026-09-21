@@ -35,9 +35,11 @@ export interface ScoreProps {
   caption?: string;
   /** False to engrave without a play button. */
   playable?: boolean;
+  /** Instrument id, so playback uses that instrument's voice. */
+  instrument?: string;
 }
 
-export function Score({ sequence, bpm, clef, timeSignature, caption, playable = true, live }: ScoreProps) {
+export function Score({ sequence, bpm, clef, timeSignature, caption, playable = true, instrument, live }: ScoreProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const handleRef = useRef<PlaybackHandle | null>(null);
@@ -150,10 +152,11 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
     void ctx.resume();
     setPlaying(true);
     handleRef.current = playSequence(ctx, sequence, {
+      instrument,
       onNote: light,
       onEnd: () => { setPlaying(false); handleRef.current = null; light(null); },
     });
-  }, [playing, sequence, light]);
+  }, [playing, sequence, light, instrument]);
 
   return (
     <figure className="score">

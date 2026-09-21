@@ -31,6 +31,7 @@ export function BlockView({ block, live }: {
           timeSignature={block.timeSignature}
           caption={block.caption}
           playable={block.playable !== false}
+          instrument={block.instrumentId}
           live={live}
         />
       );
