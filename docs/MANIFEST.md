@@ -9,7 +9,7 @@
 ## Progress
 
 **Documents:** 7 / 7 complete. **Client:** 15 of 15 screens, wired to the API.
-**Server:** all endpoints built, 55 end-to-end checks passing. **Measurements:** not started.
+**Server:** all endpoints built, 58 end-to-end checks passing. **Measurements:** not started.
 
 Nothing in the client has been used by a person. It typechecks, builds, and passes 20
 headless scoring checks; the audio path, the engraving and the quiz flow have never run.
@@ -42,7 +42,7 @@ headless scoring checks; the audio path, the engraving and the quiz flow have ne
 | Client: remaining 7 screens | Not started — sign-in, onboarding, exercise library, exercise detail, scorecard, attempt history, mic-denied. List in `README.md` |
 | `NoteSource` abstraction (ADR-013) | **Built.** `client/src/audio/note-source.ts`; `PitchEngine implements NoteSource`; tuner migrated to `subscribe`. Typechecks and builds — **not yet run in a browser** |
 | Course seed generator | **Built.** `learning/generate.ts` + `learning/content.ts`. Emits all 12 courses from one skeleton; refuses a course whose notation shift disagrees with its instrument profile |
-| Server | **Built and verified.** Express + Postgres. Every endpoint in `API_SPEC.md` §§5–8, §12 and §15. 55 end-to-end checks pass against a real database (`cd server && npm run verify`) |
+| Server | **Built and verified.** Express + Postgres. Every endpoint in `API_SPEC.md` §§5–8, §12 and §15. 58 end-to-end checks pass against a real database (`cd server && npm run verify`) |
 
 ### Spike status against `AUDIO_PIPELINE.md` §9
 
