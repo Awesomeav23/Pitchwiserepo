@@ -63,7 +63,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Flute',
     verb: 'play',
     clef: 'treble',
-    rangeShift: 0,
+    rangeShift: 12,
     notationShift: 0,
     meet: [
       { kind: 'prose', md: 'The flute is three pieces: the **headjoint** you blow across, the **body** with most of the keys, and the **footjoint** with the last few. Twist them together gently — never force a joint, and never grip the keys while you do it, because the rods bend and the pads stop sealing.' },
@@ -87,7 +87,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Clarinet (B♭)',
     verb: 'play',
     clef: 'treble',
-    rangeShift: 0,
+    rangeShift: 12,
     notationShift: 2,
     notationNote: 'The clarinet is a **transposing instrument**. The note you read is not the note that sounds: written C sounds B♭, a tone lower. This is normal and every clarinet part in the world is written this way. The staff above shows what you read; the tuner shows what actually sounds, so the two will disagree by a tone — that is correct, not a fault.',
     meet: [
@@ -112,7 +112,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Trumpet (B♭)',
     verb: 'play',
     clef: 'treble',
-    rangeShift: 0,
+    rangeShift: 12,
     notationShift: 2,
     notationNote: 'The trumpet is a **transposing instrument**. The note you read is not the note that sounds: written C sounds B♭, a tone lower. Every trumpet part is written this way. The staff above shows what you read; the tuner shows what sounds, so the two disagree by a tone — that is correct, not a fault.',
     meet: [
@@ -137,7 +137,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Violin',
     verb: 'play',
     clef: 'treble',
-    rangeShift: 0,
+    rangeShift: 12,
     notationShift: 0,
     meet: [
       { kind: 'prose', md: 'The violin sits on your **collarbone**, not your shoulder, held by the weight of your head rather than by your left hand. If your left hand is holding the instrument up, it cannot move freely, and every note after the first will fight you.' },
@@ -186,7 +186,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Guitar (melody)',
     verb: 'play',
     clef: 'treble',
-    rangeShift: -12,
+    rangeShift: 0,
     notationShift: 12,
     notationNote: 'Guitar music is written **an octave above where it sounds**. A written C4 on the guitar staff produces the pitch C3. This is a convention, not a mistake — it keeps guitar music on a treble staff instead of covered in ledger lines. The staff above shows what you read; the tuner shows the pitch that actually sounds, an octave lower.',
     meet: [
@@ -249,7 +249,7 @@ export const INSTRUMENT_COURSES: InstrumentCourse[] = [
     name: 'Piano (melody)',
     verb: 'play',
     clef: 'treble',
-    rangeShift: 0,
+    rangeShift: 12,
     notationShift: 0,
     meet: [
       { kind: 'prose', md: 'Sit at the middle of the keyboard with your forearms roughly level with the keys. If your wrists have to rise to reach, the stool is too low, and every hour you play at the wrong height builds a habit you will have to undo.' },
