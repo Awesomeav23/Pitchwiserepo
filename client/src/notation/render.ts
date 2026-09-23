@@ -15,6 +15,30 @@ import { Accidental, Dot, Formatter, Renderer, Stave, StaveNote, Voice } from 'v
 import { noteName } from '../audio/pitch';
 import type { NoteSequence } from '../exercises/types';
 
+/**
+ * Resolves once the music font can actually be drawn with.
+ *
+ * VexFlow registers Bravura through the FontFace API and throws the promise
+ * away — its entry point ends `Promise.allSettled([...]).then(() => {})`. So
+ * nothing stops a staff being engraved before the font is live, and when that
+ * happens the noteheads are laid out on one set of metrics while the stems and
+ * ledger lines, which are paths at fixed coordinates, are drawn on another.
+ * The result is a notehead sitting a constant distance from its own stem.
+ *
+ * Bounded, because a font that never arrives must not mean a staff that never
+ * draws: after the timeout we engrave anyway and let the redraw below fix it.
+ */
+export async function fontsReady(timeoutMs = 3000): Promise<void> {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  const load = document.fonts.load('30pt Bravura').then(() => undefined);
+  const cap = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+  try {
+    await Promise.race([load, cap]);
+  } catch {
+    /* A font that fails to load is not a reason to render nothing. */
+  }
+}
+
 export interface ScoreOptions {
   bpm: number;
   clef?: 'treble' | 'bass';

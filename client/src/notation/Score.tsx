@@ -58,7 +58,12 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
     let cancelled = false;
     let observer: ResizeObserver | null = null;
 
-    void loadRenderer().then(({ renderScore }) => {
+    void loadRenderer().then(async ({ renderScore, fontsReady }) => {
+      if (cancelled) return;
+      // Before the first draw, not after: engraving on the fallback font puts
+      // every notehead a fixed distance from its own stem, because the stems
+      // are paths at coordinates the glyph metrics no longer agree with.
+      await fontsReady();
       if (cancelled) return;
       const draw = () => {
         // Measured from the parent, not from the host: the host's width is set
@@ -92,6 +97,14 @@ export function Score({ sequence, bpm, clef, timeSignature, caption, playable = 
       // Observing the parent for the same reason: the host resizes itself.
       observer = new ResizeObserver(draw);
       if (host.parentElement) observer.observe(host.parentElement);
+
+      // A second pass once every font has settled. fontsReady() gives up after
+      // a few seconds so a slow font cannot leave the staff blank, which means
+      // it can return before Bravura is live; this redraw is what repairs that
+      // case rather than leaving it on screen.
+      if (document.fonts?.ready) {
+        void document.fonts.ready.then(() => { if (!cancelled) draw(); });
+      }
     }).catch((err: unknown) => {
       if (!cancelled) setError(err instanceof Error ? err.message : String(err));
     });

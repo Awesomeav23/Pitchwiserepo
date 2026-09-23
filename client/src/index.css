@@ -259,6 +259,17 @@ select {
      shrink-to-fit would measure nothing. */
   width: 100%;
 }
+/* VexFlow puts font-family on the <svg> as a presentation attribute, which
+   loses to any CSS rule at all — a user stylesheet, an extension, a browser
+   font override. When it loses, the noteheads render from a font whose metrics
+   the stems and ledger lines were not drawn against, and every notehead ends
+   up a fixed distance from its own stem. Stated here so the music font wins
+   the cascade rather than relying on nobody else having an opinion. */
+.score-sheet svg,
+.score-sheet svg text {
+  font-family: 'Bravura', 'Academico', serif !important;
+}
+
 .score figcaption {
   display: flex; align-items: center; gap: 12px;
   margin-top: 9px; color: var(--dim); font-size: 12.5px;
