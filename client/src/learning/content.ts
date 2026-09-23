@@ -53,7 +53,7 @@ const voice = (id: string, name: string, range: string, low: string, high: strin
 // ---- the catalogue -----------------------------------------------------
 
 export const INSTRUMENT_COURSES: InstrumentCourse[] = [
-  voice('voice_soprano', 'Voice — soprano', 'C4–C6', 'C4', 'C6', 0),
+  voice('voice_soprano', 'Voice — soprano', 'C4–C6', 'C4', 'C6', 12),
   voice('voice_alto', 'Voice — alto', 'F3–F5', 'F3', 'F5', 0),
   voice('voice_tenor', 'Voice — tenor', 'C3–C5', 'C3', 'C5', 0),
   voice('voice_bass', 'Voice — bass', 'E2–E4', 'E2', 'E4', -12),
