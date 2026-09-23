@@ -12,13 +12,24 @@ import { setClerkTokenGetter } from './session';
 export function ClerkBridge({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
 
-  useEffect(() => {
-    setClerkTokenGetter(() => getToken());
-    return () => setClerkTokenGetter(null);
-  }, [getToken]);
+  // Installed during render rather than in an effect, which is the whole point
+  // of this line. React runs effects child-first, so an effect here runs
+  // *after* the children's — and the children fetch from theirs. Whenever
+  // Clerk was already loaded on the first render, which is the normal case
+  // arriving from its own redirect or on a warm session, the first request
+  // went out before any getter existed. getToken() then fell back to the
+  // development token, production refuses that, and the screen reported "Your
+  // session has expired". Reloading appeared to fix it only because Clerk
+  // reported isLoaded: false first and the children were held back long enough.
+  //
+  // Assigning a function reference is idempotent and cheap, so doing it on
+  // every render costs nothing and cannot be raced.
+  setClerkTokenGetter(() => getToken());
 
-  // Nothing renders until the getter is installed, or the first request would
-  // go out with the development token and provision a second user.
+  useEffect(() => () => setClerkTokenGetter(null), []);
+
+  // Still gated on isLoaded: before Clerk has resolved, getToken() answers null
+  // and the getter above would throw rather than return a usable token.
   if (!isLoaded) return null;
   return <>{children}</>;
 }
